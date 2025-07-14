@@ -96,15 +96,27 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         const {
           data: { user },
         } = await supabase.auth.getUser();
+
+        console.log('🔍 初回認証チェック完了:', {
+          user: !!user,
+          userId: user?.id,
+        });
         setUser(user);
 
+        // 認証済みの場合のみプロフィール取得（非同期で実行）
         if (user) {
-          const profile = await fetchUserProfile(user.id);
-          setUserProfile(profile);
+          fetchUserProfile(user.id)
+            .then((profile) => {
+              setUserProfile(profile);
+            })
+            .catch((error) => {
+              console.error('プロフィール取得エラー:', error);
+            });
         }
       } catch (error) {
-        console.error('Error getting initial auth:', error);
+        console.error('初回認証チェックエラー:', error);
       } finally {
+        // 認証状態チェックは即座に完了
         setLoading(false);
       }
     };
@@ -116,7 +128,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       data: { subscription },
     } = supabase.auth.onAuthStateChange(async (event, session) => {
       console.log('🔄 Auth状態変更:', event, session?.user?.id);
-      
+
       if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {
         console.log('✅ ログイン検出:', session?.user?.id);
         setUser(session?.user ?? null);

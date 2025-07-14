@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
@@ -35,6 +35,7 @@ const navigationItems = [
 export function Header() {
   const [isOpen, setIsOpen] = useState(false);
   const pathname = usePathname();
+  const router = useRouter();
   const { user, userProfile, signOut, loading } = useAuth();
 
   // 認証が必要ないページかチェック
@@ -44,7 +45,7 @@ export function Header() {
 
   const handleSignOut = async () => {
     await signOut();
-    window.location.href = '/';
+    router.push('/');
   };
 
   const getUserDisplayName = () => {
