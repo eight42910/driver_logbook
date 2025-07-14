@@ -35,8 +35,16 @@ function DashboardContent() {
   const [statsLoading, setStatsLoading] = useState(true);
   const [recentReports, setRecentReports] = useState<any[]>([]);
 
+  // 全てのhooksを条件分岐より前に配置
   useEffect(() => {
+    console.log('📊 Dashboard認証チェック:', {
+      loading,
+      user: !!user,
+      userId: user?.id,
+    });
+    // 初回読み込み完了後に未認証ならリダイレクト
     if (!loading && !user) {
+      console.log('❌ 未認証のためログインページにリダイレクト');
       router.push('/login');
     }
   }, [user, loading, router]);
@@ -75,34 +83,22 @@ function DashboardContent() {
     fetchDashboardData();
   }, [user]);
 
-  if (loading) {
+  // hooksの後に条件分岐
+  // 初回の認証状態確認中のみローディング表示（短時間）
+  if (loading && !user) {
     return (
-      <MainLayout>
-        <div className="space-y-8">
-          <div className="bg-gray-200 rounded-lg p-6 animate-pulse">
-            <div className="h-6 bg-gray-300 rounded mb-2"></div>
-            <div className="h-4 bg-gray-300 rounded w-2/3"></div>
-          </div>
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-            {[...Array(4)].map((_, i) => (
-              <Card key={i}>
-                <CardContent className="p-6">
-                  <div className="animate-pulse">
-                    <div className="h-4 bg-gray-200 rounded mb-4"></div>
-                    <div className="h-8 bg-gray-200 rounded mb-2"></div>
-                    <div className="h-3 bg-gray-200 rounded w-1/2"></div>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <p className="text-gray-600">認証状態を確認中...</p>
         </div>
-      </MainLayout>
+      </div>
     );
   }
 
+  // 認証状態確認完了後、未認証の場合はリダイレクト中
   if (!user) {
-    return null; // リダイレクト中
+    return null;
   }
 
   return (
@@ -246,7 +242,7 @@ function DashboardContent() {
                 className="w-full justify-start"
                 size="lg"
               >
-                <Link href="/reports">
+                <Link href="/reports/list">
                   <BookOpenIcon className="mr-2 h-4 w-4" />
                   日報履歴を確認
                 </Link>

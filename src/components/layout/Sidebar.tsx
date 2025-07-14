@@ -19,8 +19,13 @@ const sidebarItems = [
     icon: HomeIcon,
   },
   {
-    href: '/daily-reports',
-    label: '日報管理',
+    href: '/reports/list',
+    label: '日報一覧',
+    icon: BookOpenIcon,
+  },
+  {
+    href: '/reports',
+    label: '日報作成',
     icon: BookOpenIcon,
   },
   {

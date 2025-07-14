@@ -114,6 +114,7 @@ export async function getDailyReports(
     limit?: number;
     offset?: number;
     isWorked?: boolean;
+    searchQuery?: string;
   } = {}
 ): Promise<DailyReport[]> {
   let query = supabase
@@ -135,6 +136,11 @@ export async function getDailyReports(
     query = query.eq('is_worked', options.isWorked);
   }
 
+  // 検索フィルター（ノート内検索）
+  if (options.searchQuery) {
+    query = query.ilike('notes', `%${options.searchQuery}%`);
+  }
+
   // ページネーション
   if (options.limit) {
     query = query.limit(options.limit);
@@ -154,6 +160,84 @@ export async function getDailyReports(
   }
 
   return reports || [];
+}
+
+/**
+ * 日報の総件数を取得（フィルター条件に基づく）
+ * @param userId ユーザーID
+ * @param options フィルター条件
+ * @returns 総件数
+ */
+export async function getDailyReportsCount(
+  userId: string,
+  options: {
+    startDate?: string;
+    endDate?: string;
+    isWorked?: boolean;
+    searchQuery?: string;
+  } = {}
+): Promise<number> {
+  let query = supabase
+    .from('daily_reports')
+    .select('*', { count: 'exact', head: true })
+    .eq('user_id', userId);
+
+  // 期間フィルター
+  if (options.startDate) {
+    query = query.gte('date', options.startDate);
+  }
+  if (options.endDate) {
+    query = query.lte('date', options.endDate);
+  }
+
+  // 稼働状況フィルター
+  if (options.isWorked !== undefined) {
+    query = query.eq('is_worked', options.isWorked);
+  }
+
+  // 検索フィルター（ノート内検索）
+  if (options.searchQuery) {
+    query = query.ilike('notes', `%${options.searchQuery}%`);
+  }
+
+  const { count, error } = await query;
+
+  if (error) {
+    console.error('日報件数取得エラー:', error);
+    throw new Error(`日報件数の取得に失敗しました: ${error.message}`);
+  }
+
+  return count || 0;
+}
+
+/**
+ * 日報一覧とその総件数を同時に取得
+ * @param userId ユーザーID
+ * @param options フィルター・ページング条件
+ * @returns 日報データと総件数
+ */
+export async function getDailyReportsWithCount(
+  userId: string,
+  options: {
+    startDate?: string;
+    endDate?: string;
+    limit?: number;
+    offset?: number;
+    isWorked?: boolean;
+    searchQuery?: string;
+  } = {}
+): Promise<{ reports: DailyReport[]; totalCount: number }> {
+  const [reports, totalCount] = await Promise.all([
+    getDailyReports(userId, options),
+    getDailyReportsCount(userId, {
+      startDate: options.startDate,
+      endDate: options.endDate,
+      isWorked: options.isWorked,
+      searchQuery: options.searchQuery,
+    }),
+  ]);
+
+  return { reports, totalCount };
 }
 
 /**

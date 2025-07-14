@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useForm } from 'react-hook-form';
@@ -18,6 +18,7 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import { useAuth } from '@/contexts/AuthContext';
 
 const loginSchema = z.object({
   email: z.string().email('有効なメールアドレスを入力してください'),
@@ -30,7 +31,9 @@ export default function LoginPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const router = useRouter();
+  const { user, loading } = useAuth();
 
+  // フォームの初期化（hooksは条件分岐より前に配置）
   const form = useForm<LoginForm>({
     resolver: zodResolver(loginSchema),
     defaultValues: {
@@ -38,6 +41,21 @@ export default function LoginPage() {
       password: '',
     },
   });
+
+  // 既にログインしている場合はダッシュボードにリダイレクト
+  React.useEffect(() => {
+    if (user) {
+      console.log('✅ 既にログイン済み、ダッシュボードにリダイレクト');
+      router.push('/dashboard');
+    }
+  }, [user, router]);
+
+  // 既にログインしている場合は何も表示しない（リダイレクト中）
+  if (user) {
+    return null;
+  }
+
+  // ログイン画面を表示（認証状態の初回チェックは気にしない）
 
   const onSubmit = async (data: LoginForm) => {
     console.log('🔄 ログイン開始:', data.email);
@@ -61,10 +79,13 @@ export default function LoginPage() {
 
       if (authData.user) {
         console.log('✅ ログイン成功:', authData.user.id);
-        console.log('🔄 ダッシュボードにリダイレクト中...');
+        console.log('🔄 認証状態更新を待機中...');
 
-        // 強制的にリダイレクト
-        window.location.href = '/dashboard';
+        // AuthContextが状態を更新するまで少し待つ
+        setTimeout(() => {
+          console.log('🔄 ダッシュボードにリダイレクト');
+          router.push('/dashboard');
+        }, 1000);
         return;
       }
     } catch (error: any) {
