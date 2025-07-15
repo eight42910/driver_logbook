@@ -63,6 +63,35 @@ export async function getDailyReportByDate(
 }
 
 /**
+ * IDで日報を取得
+ * @param id 日報ID
+ * @param userId ユーザーID（セキュリティ確認用）
+ * @returns 日報データまたはnull
+ */
+export async function getDailyReportById(
+  id: number,
+  userId: string
+): Promise<DailyReport | null> {
+  const { data: report, error } = await supabase
+    .from('daily_reports')
+    .select('*')
+    .eq('id', id)
+    .eq('user_id', userId) // 自分の日報のみ取得可能
+    .single();
+
+  if (error) {
+    // レコードが見つからない場合はnullを返す
+    if (error.code === 'PGRST116') {
+      return null;
+    }
+    console.error('日報取得エラー:', error);
+    throw new Error(`日報の取得に失敗しました: ${error.message}`);
+  }
+
+  return report;
+}
+
+/**
  * 日報を更新
  * @param id 日報ID
  * @param data 更新データ
@@ -315,7 +344,10 @@ export async function getMonthlyStats(
       (sum, r) => sum + (r.deliveries || 0),
       0
     ),
-    totalTollFee: workingReports.reduce((sum, r) => sum + (r.highway_fee || 0), 0),
+    totalTollFee: workingReports.reduce(
+      (sum, r) => sum + (r.highway_fee || 0),
+      0
+    ),
     totalHours: 0, // TODO: 時間計算を実装
   };
 
@@ -369,7 +401,7 @@ export async function upsertDailyReport(
     start_odometer: formData.start_odometer,
     end_odometer: formData.end_odometer,
     deliveries: formData.deliveries,
-          highway_fee: formData.highway_fee,
+    highway_fee: formData.highway_fee,
     notes: formData.notes,
   };
 
