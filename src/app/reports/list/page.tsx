@@ -10,11 +10,14 @@ import {
   TableIcon,
   FilterIcon,
   SearchIcon,
+  EditIcon,
+  TrashIcon,
 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { getDailyReportsWithCount } from '@/lib/supabase/queries/daily-reports';
 import type { DailyReport } from '@/types/database';
 import { CalendarView } from '@/components/calendar/CalendarView';
+import { DeleteConfirmDialog } from '@/components/forms/DeleteConfirmDialog';
 
 // フィルター条件の型定義
 interface FilterOptions {
@@ -50,6 +53,14 @@ export default function DailyReportsListPage() {
 
   // フィルターの表示/非表示
   const [showFilters, setShowFilters] = useState(false);
+
+  // 削除ダイアログの状態
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [reportToDelete, setReportToDelete] = useState<DailyReport | null>(
+    null
+  );
+  const [deleteSuccess, setDeleteSuccess] = useState<string | null>(null);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
 
   // データ取得関数
   const fetchReports = async () => {
@@ -98,6 +109,31 @@ export default function DailyReportsListPage() {
     setCurrentPage(1); // フィルター変更時は1ページ目に戻る
   };
 
+  // 削除関連の関数
+  const handleDeleteClick = (report: DailyReport) => {
+    setReportToDelete(report);
+    setDeleteDialogOpen(true);
+    setDeleteSuccess(null);
+    setDeleteError(null);
+  };
+
+  const handleDeleteSuccess = (reportId: number) => {
+    // 楽観的削除：UIから即座に削除
+    setReports((prev) => prev.filter((report) => report.id !== reportId));
+    setTotalCount((prev) => prev - 1);
+    setDeleteSuccess('日報を削除しました');
+
+    // 3秒後に成功メッセージを非表示
+    setTimeout(() => setDeleteSuccess(null), 3000);
+  };
+
+  const handleDeleteError = (error: string) => {
+    setDeleteError(error);
+
+    // 5秒後にエラーメッセージを非表示
+    setTimeout(() => setDeleteError(null), 5000);
+  };
+
   // ページネーション情報
   const totalPages = Math.ceil(totalCount / ITEMS_PER_PAGE);
   const startIndex = (currentPage - 1) * ITEMS_PER_PAGE + 1;
@@ -120,6 +156,55 @@ export default function DailyReportsListPage() {
           </Button>
         </Link>
       </div>
+
+      {/* 成功・エラーメッセージ */}
+      {deleteSuccess && (
+        <div className="mb-6 p-4 bg-green-50 border border-green-200 rounded-lg">
+          <div className="flex items-center">
+            <div className="flex-shrink-0">
+              <svg
+                className="h-5 w-5 text-green-400"
+                viewBox="0 0 20 20"
+                fill="currentColor"
+              >
+                <path
+                  fillRule="evenodd"
+                  d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                  clipRule="evenodd"
+                />
+              </svg>
+            </div>
+            <div className="ml-3">
+              <p className="text-sm font-medium text-green-800">
+                {deleteSuccess}
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {deleteError && (
+        <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
+          <div className="flex items-center">
+            <div className="flex-shrink-0">
+              <svg
+                className="h-5 w-5 text-red-400"
+                viewBox="0 0 20 20"
+                fill="currentColor"
+              >
+                <path
+                  fillRule="evenodd"
+                  d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
+                  clipRule="evenodd"
+                />
+              </svg>
+            </div>
+            <div className="ml-3">
+              <p className="text-sm font-medium text-red-800">{deleteError}</p>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* 表示切り替えとフィルター */}
       <Card className="mb-6">
@@ -364,10 +449,23 @@ export default function DailyReportsListPage() {
                         </td>
                         <td className="border border-gray-200 px-4 py-3 text-sm">
                           <div className="flex gap-2">
-                            <Button size="sm" variant="outline">
-                              編集
-                            </Button>
-                            <Button size="sm" variant="outline">
+                            <Link href={`/reports/edit/${report.id}`}>
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                className="flex items-center gap-1"
+                              >
+                                <EditIcon className="h-3 w-3" />
+                                編集
+                              </Button>
+                            </Link>
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              className="flex items-center gap-1 text-red-600 hover:text-red-700 hover:border-red-300"
+                              onClick={() => handleDeleteClick(report)}
+                            >
+                              <TrashIcon className="h-3 w-3" />
                               削除
                             </Button>
                           </div>
@@ -402,10 +500,23 @@ export default function DailyReportsListPage() {
                         </span>
                       </div>
                       <div className="flex gap-2">
-                        <Button size="sm" variant="outline">
-                          編集
-                        </Button>
-                        <Button size="sm" variant="outline">
+                        <Link href={`/reports/edit/${report.id}`}>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            className="flex items-center gap-1"
+                          >
+                            <EditIcon className="h-3 w-3" />
+                            編集
+                          </Button>
+                        </Link>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="flex items-center gap-1 text-red-600 hover:text-red-700 hover:border-red-300"
+                          onClick={() => handleDeleteClick(report)}
+                        >
+                          <TrashIcon className="h-3 w-3" />
                           削除
                         </Button>
                       </div>
@@ -546,6 +657,15 @@ export default function DailyReportsListPage() {
           </CardContent>
         </Card>
       </div>
+
+      {/* 削除確認ダイアログ */}
+      <DeleteConfirmDialog
+        open={deleteDialogOpen}
+        onOpenChange={setDeleteDialogOpen}
+        report={reportToDelete}
+        onDeleteSuccess={handleDeleteSuccess}
+        onDeleteError={handleDeleteError}
+      />
     </div>
   );
 }

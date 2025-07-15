@@ -35,20 +35,18 @@ export async function getAuthenticatedUserProfile() {
     .single();
 
   if (error) {
-    console.error('Error fetching user profile:', error);
     // プロフィールが存在しない場合は基本情報で作成
     const { data: newProfile, error: insertError } = await supabase
       .from('users')
       .insert({
         id: user.id,
         email: user.email!,
-        display_name: user.user_metadata?.display_name || null,
+        display_name: user.user_metadata?.display_name || undefined,
       })
       .select()
       .single();
 
     if (insertError) {
-      console.error('Error creating user profile:', insertError);
       redirect('/login');
     }
 

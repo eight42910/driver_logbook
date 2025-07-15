@@ -1,72 +1,70 @@
 # Driver Logbook v3
 
-委託ドライバー業務効率化アプリ
-
-![Next.js](https://img.shields.io/badge/Next.js-14-black)
-![TypeScript](https://img.shields.io/badge/TypeScript-5-blue)
-![Supabase](https://img.shields.io/badge/Supabase-green)
-![Vercel](https://img.shields.io/badge/Vercel-deployed-black)
+運転手の日報管理システム - Next.js + Supabase で構築された現代的な Web アプリケーション
 
 ## 📋 プロジェクト概要
 
-**委託ドライバーが日々の業務をストレスなく記録・可視化し、改善のヒントを得られる"使っていて楽しい"業務アプリ**
+Driver Logbook v3 は、委託ドライバー向けの包括的な業務管理システムです。日々の稼働記録、メンテナンス管理、経費追跡を一元化し、効率的な業務運営をサポートします。
 
-### 🎯 ターゲットユーザー
+### 🎯 主な機能
 
-- **プライマリ**: 委託軽貨物ドライバー（個人事業主）
-- **セカンダリ**: 事務担当・発注元
+#### ✅ 実装済み機能
 
-### ✨ 主要機能
+- **認証システム**
 
-- 📝 **日報・月報管理**: 日々の業務記録と自動集計
-- 🔧 **車両メンテナンス**: 点検・修理履歴とリマインダー
-- 💰 **収支管理**: 売上・経費の記録と PDF/CSV 出力
-- 📊 **ダッシュボード**: KPI 可視化とパフォーマンス分析
+  - ユーザー登録・ログイン・ログアウト
+  - Supabase Auth による安全な認証
+  - パスワードリセット機能
 
-## 🛠️ 技術スタック
+- **日報管理**
+
+  - 日報の作成・編集・削除
+  - 稼働時間・走行距離の自動計算
+  - 配送件数・高速料金の記録
+  - 備考・メモ機能
+
+- **一覧表示・検索**
+
+  - テーブル形式とカレンダー形式の切り替え
+  - 日付範囲・作業状況でのフィルタリング
+  - メモ内容での検索機能
+  - ページネーション（10 件/ページ）
+
+- **ダッシュボード**
+  - 月間統計表示（稼働日数、総距離、配送件数など）
+  - 最近の日報履歴
+  - クイックアクション
+
+#### 🚧 開発予定機能
+
+- 月次レポート・PDF 出力
+- 車両メンテナンス記録
+- 経費管理
+- 収益分析・KPI 表示
+- PWA 対応（オフライン機能）
+
+## 🏗️ 技術スタック
 
 ### フロントエンド
 
-- **Next.js 14** (App Router)
-- **TypeScript**
-- **shadcn/ui** (Radix UI + Tailwind CSS)
-- **React Hook Form** + **Zod**
+- **Next.js 14.2** - React ベースのフルスタックフレームワーク（App Router 使用）
+- **TypeScript 5.x** - 型安全な開発環境
+- **Tailwind CSS** - ユーティリティファースト CSS
+- **shadcn/ui** - 美しい UI コンポーネント
+- **React Hook Form + Zod** - フォーム管理とバリデーション
+- **Lucide React** - アイコンライブラリ
 
-### バックエンド・インフラ
+### バックエンド・データベース
 
-- **Supabase** (Database, Auth, Storage, Edge Functions)
-- **Vercel** (デプロイ・ホスティング)
+- **Supabase** - PostgreSQL + リアルタイム機能
+- **Row Level Security (RLS)** - データベースレベルのセキュリティ
+- **Supabase Auth** - 認証・認可システム
 
-### テスト・開発ツール
+### 開発ツール
 
-- **Vitest** + **React Testing Library**
-- **ESLint** + **Prettier**
-- **GitHub Actions** (CI/CD)
-
-## 🏗️ プロジェクト構造
-
-```
-src/
-├── app/                    # Next.js App Router
-│   ├── (auth)/            # 認証関連ページ
-│   ├── dashboard/         # ダッシュボード
-│   ├── reports/           # 日報・月報
-│   ├── maintenance/       # 車両メンテナンス
-│   ├── expenses/          # 経費管理
-│   └── settings/          # 設定
-├── components/            # 再利用可能コンポーネント
-│   ├── ui/               # shadcn/ui コンポーネント
-│   ├── forms/            # フォームコンポーネント
-│   ├── charts/           # グラフコンポーネント
-│   └── layout/           # レイアウトコンポーネント
-├── lib/                  # ユーティリティ・設定
-│   ├── supabase/         # Supabase関連
-│   ├── validations/      # Zodスキーマ
-│   └── utils/            # ヘルパー関数
-├── hooks/                # カスタムフック
-├── context/              # Reactコンテキスト
-└── types/                # TypeScript型定義
-```
+- **ESLint** - コード品質管理
+- **Prettier** - コード整形
+- **Git** - バージョン管理
 
 ## 🚀 セットアップ
 
@@ -76,10 +74,10 @@ src/
 - npm または yarn
 - Supabase アカウント
 
-### 1. プロジェクトのクローン
+### 1. リポジトリのクローン
 
 ```bash
-git clone https://github.com/your-username/driver-logbook-v3.git
+git clone https://github.com/eight42910/driver-logbook-v3.git
 cd driver-logbook-v3
 ```
 
@@ -91,285 +89,225 @@ npm install
 
 ### 3. 環境変数の設定
 
-`.env.local`ファイルを作成：
+`.env.local` ファイルを作成し、以下の内容を設定：
 
 ```env
 NEXT_PUBLIC_SUPABASE_URL=your_supabase_project_url
 NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
 ```
 
-### 4. Supabase の設定
+### 4. Supabase データベースの設定
 
-```bash
-# Supabase CLIのインストール
-npm install -g @supabase/cli
+#### テーブル作成
 
-# プロジェクトの初期化
-supabase init
+```sql
+-- ユーザーテーブル
+CREATE TABLE users (
+  id UUID PRIMARY KEY DEFAULT auth.uid(),
+  email TEXT UNIQUE NOT NULL,
+  display_name TEXT,
+  company_name TEXT,
+  vehicle_info JSONB,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
 
-# ローカル開発環境の起動
-supabase start
+-- 日報テーブル
+CREATE TABLE daily_reports (
+  id SERIAL PRIMARY KEY,
+  user_id UUID REFERENCES users(id) ON DELETE CASCADE,
+  date DATE NOT NULL,
+  is_worked BOOLEAN NOT NULL DEFAULT false,
+  start_time TIME,
+  end_time TIME,
+  start_odometer DECIMAL(10,1),
+  end_odometer DECIMAL(10,1),
+  distance_km DECIMAL(10,1) GENERATED ALWAYS AS (
+    CASE
+      WHEN end_odometer >= start_odometer THEN end_odometer - start_odometer
+      ELSE (999999 - start_odometer + end_odometer + 1)
+    END
+  ) STORED,
+  deliveries INTEGER,
+  highway_fee INTEGER,
+  notes TEXT,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  UNIQUE(user_id, date)
+);
+
+-- 月次レポートテーブル
+CREATE TABLE monthly_reports (
+  user_id UUID REFERENCES users(id) ON DELETE CASCADE,
+  year INTEGER NOT NULL,
+  month INTEGER NOT NULL,
+  working_days INTEGER DEFAULT 0,
+  total_distance DECIMAL(10,1) DEFAULT 0,
+  total_deliveries INTEGER DEFAULT 0,
+  total_highway_fee INTEGER DEFAULT 0,
+  total_hours DECIMAL(5,2) DEFAULT 0,
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  PRIMARY KEY (user_id, year, month)
+);
 ```
 
-### 5. データベースのセットアップ
+#### RLS ポリシー設定
 
-```bash
-# マイグレーションの実行
-supabase db push
+```sql
+-- ユーザーテーブルのRLS
+ALTER TABLE users ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Users can view own profile" ON users
+  FOR SELECT USING (auth.uid() = id);
+CREATE POLICY "Users can update own profile" ON users
+  FOR UPDATE USING (auth.uid() = id);
 
-# 初期データの投入（オプション）
-supabase db seed
+-- 日報テーブルのRLS
+ALTER TABLE daily_reports ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Users can manage own reports" ON daily_reports
+  FOR ALL USING (auth.uid() = user_id);
+
+-- 月次レポートテーブルのRLS
+ALTER TABLE monthly_reports ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Users can view own monthly reports" ON monthly_reports
+  FOR ALL USING (auth.uid() = user_id);
 ```
 
-### 6. 開発サーバーの起動
+### 5. 開発サーバーの起動
 
 ```bash
 npm run dev
 ```
 
-## 📊 データベース設計
+ブラウザで [http://localhost:3000](http://localhost:3000) を開いてアプリケーションを確認できます。
 
-### 主要テーブル
+## 📁 プロジェクト構造
 
-#### users
-
-```sql
-create table users (
-  id uuid primary key default auth.uid(),
-  display_name text,
-  role text default 'driver',
-  unit_price integer,
-  vehicle_info jsonb,
-  created_at timestamp default now()
-);
+```
+src/
+├── app/                          # Next.js App Router
+│   ├── (auth)/                  # 認証関連ページ
+│   │   ├── login/              # ログインページ
+│   │   └── register/           # 登録ページ
+│   ├── dashboard/              # ダッシュボード
+│   ├── reports/                # 日報関連
+│   │   ├── list/              # 日報一覧
+│   │   └── edit/[id]/         # 日報編集
+│   ├── layout.tsx             # ルートレイアウト
+│   └── page.tsx               # ホームページ
+├── components/                 # 再利用可能なコンポーネント
+│   ├── ui/                    # shadcn/ui コンポーネント
+│   ├── forms/                 # フォーム関連
+│   ├── layout/                # レイアウト関連
+│   └── calendar/              # カレンダー表示
+├── contexts/                  # React Context
+│   └── AuthContext.tsx        # 認証状態管理
+├── lib/                       # ユーティリティ・設定
+│   ├── supabase/             # Supabase関連
+│   │   ├── client.ts         # クライアント設定
+│   │   ├── auth.ts           # 認証ヘルパー
+│   │   └── queries/          # データベースクエリ
+│   ├── validations/          # フォームバリデーション
+│   └── utils.ts              # 汎用ユーティリティ
+├── types/                     # TypeScript型定義
+│   └── database.ts           # データベース型定義
+└── styles/                   # グローバルCSS
+    └── globals.css
 ```
 
-#### daily_reports
+## 🧪 使用方法
 
-```sql
-create table daily_reports (
-  id bigserial primary key,
-  user_id uuid references users(id),
-  date date not null,
-  distance_km integer,
-  deliveries integer,
-  working_hours decimal,
-  revenue integer,
-  expenses integer,
-  notes text,
-  created_at timestamp default now()
-);
-```
+### 1. ユーザー登録・ログイン
 
-#### maintenance_records
+1. アプリケーションにアクセス
+2. 「無料で始める」をクリックして新規登録
+3. メールアドレスとパスワードを入力
+4. 表示名・会社名を設定（任意）
 
-```sql
-create table maintenance_records (
-  id bigserial primary key,
-  user_id uuid references users(id),
-  type text not null,
-  cost integer,
-  odometer integer,
-  performed_at date,
-  next_due_at date,
-  memo text,
-  created_at timestamp default now()
-);
-```
+### 2. 日報作成
 
-#### expense_records
+1. ダッシュボードから「今日の日報を作成」をクリック
+2. 稼働チェックボックスを選択
+3. 開始・終了時間を入力（「現在」ボタンで現在時刻を自動入力）
+4. 開始・終了メーターを入力（走行距離が自動計算）
+5. 配送件数・高速料金・備考を入力
+6. 「日報を保存」をクリック
 
-```sql
-create table expense_records (
-  id bigserial primary key,
-  user_id uuid references users(id),
-  category text not null,
-  amount integer not null,
-  occurred_at date not null,
-  receipt_url text,
-  notes text,
-  created_at timestamp default now()
-);
-```
+### 3. 日報一覧・編集
 
-## 🧪 テスト
+1. サイドバーから「日報一覧」をクリック
+2. テーブル表示またはカレンダー表示を選択
+3. フィルター機能で日付範囲・作業状況・検索条件を設定
+4. 「編集」ボタンで日報の編集が可能
+5. 「削除」ボタンで確認ダイアログ後に削除実行
 
-### テストの実行
-
-```bash
-# 全てのテストを実行
-npm run test
-
-# テストをwatch モードで実行
-npm run test:watch
-
-# カバレッジレポートの生成
-npm run test:coverage
-```
-
-### テストの種類
-
-- **単体テスト**: コンポーネント・フック・ユーティリティ関数
-- **統合テスト**: フォーム送信・データ取得フロー
-- **E2E テスト**: 主要なユーザージャーニー（追加予定）
-
-## 📱 機能詳細
-
-### 1. 認証システム
-
-- メール/パスワード認証
-- Google/Apple OAuth（予定）
-- パスワードリセット
-- プロフィール管理
-
-### 2. 日報管理
-
-- 日次業務記録（走行距離、配送件数、労働時間）
-- カレンダー表示
-- 月次自動集計
-- PDF/CSV エクスポート
-
-### 3. 車両メンテナンス
-
-- オイル交換、タイヤ交換等の記録
-- 次回メンテナンス時期の自動計算
-- リマインダー通知
-- 費用追跡
-
-### 4. 収支管理
-
-- 売上記録
-- 経費カテゴリ別管理
-- 月次・年次レポート
-- 税務書類準備支援
-
-### 5. ダッシュボード
-
-- KPI 可視化（配送効率、売上推移）
-- ストリークバッジ（連続記録日数）
-- パフォーマンス分析
-- 目標設定・追跡
-
-## 🎨 デザインシステム
-
-### カラーパレット
-
-- **Primary**: Emerald-600
-- **Accent**: Cyan-500
-- **Surface**: Slate-950 (Dark) / Slate-50 (Light)
-
-### コンポーネント
-
-- shadcn/ui ベースの一貫したデザイン
-- モバイルファースト設計
-- ダークモード対応
-- アクセシビリティ準拠 (WCAG 2.1 AA)
-
-## 🚀 デプロイ
-
-### Vercel へのデプロイ
-
-```bash
-# Vercel CLIのインストール
-npm install -g vercel
-
-# デプロイ
-vercel --prod
-```
-
-### 環境変数の設定
-
-Vercel ダッシュボードで以下の環境変数を設定：
-
-- `NEXT_PUBLIC_SUPABASE_URL`
-- `NEXT_PUBLIC_SUPABASE_ANON_KEY`
-
-## 📈 開発ロードマップ
-
-### フェーズ 1: 基盤構築（Week 1-2）
-
-- [x] Next.js 14 プロジェクト初期化
-- [ ] shadcn/ui セットアップ
-- [ ] Supabase 統合
-- [ ] 認証システム実装
-- [ ] 基本レイアウト作成
-
-### フェーズ 2: コア機能開発（Week 3-5）
-
-- [ ] 日報作成・編集機能
-- [ ] 車両メンテナンス記録
-- [ ] 経費管理システム
-- [ ] ダッシュボード実装
-- [ ] 通知システム
-
-### フェーズ 3: 最適化と完成（Week 6）
-
-- [ ] PDF/CSV エクスポート
-- [ ] パフォーマンス最適化
-- [ ] テスト実装
-- [ ] ドキュメント整備
-- [ ] プロダクションデプロイ
-
-## 🤝 開発ガイドライン
-
-### 開発思想
-
-- **シンプル第一**: 「記録 → 管理 → 提出」が UX のコア
-- **段階的学習**: 最初は useContext、慣れたら Zustand
-- **型安全重視**: TypeScript で早期エラー発見
-- **ユーザビリティ**: モバイル優先、直感的操作
+## 🔧 開発ガイド
 
 ### コーディング規約
 
-- **コンポーネント**: PascalCase
-- **ファイル名**: kebab-case
-- **フック**: use- prefix
-- **型定義**: 明示的な型指定を推奨
+- **ESLint**: Next.js 推奨設定に従う
+- **TypeScript**: strict モードを使用
+- **命名規則**:
+  - ディレクトリ: kebab-case
+  - コンポーネント: PascalCase
+  - 関数・変数: camelCase
 
-### コミット規約
+### コンポーネント設計
 
-```
-feat: 新機能の追加
-fix: バグ修正
-docs: ドキュメント更新
-style: コードスタイルの変更
-refactor: リファクタリング
-test: テストの追加・修正
-chore: その他の変更
-```
+- 1 ファイル = 1 コンポーネント（50 行以下推奨）
+- 関心事の分離を意識
+- 再利用性を考慮した設計
 
-## 📚 学習リソース
+### データベースクエリ
 
-### 推奨学習順序
+- すべてのクエリは `src/lib/supabase/queries/` に配置
+- エラーハンドリングを必ず実装
+- 型安全性を確保
 
-1. [Next.js 公式チュートリアル](https://nextjs.org/learn)
-2. [Supabase 公式ドキュメント](https://supabase.com/docs)
-3. [shadcn/ui 公式サイト](https://ui.shadcn.com/)
-4. [React Testing Library 公式ガイド](https://testing-library.com/docs/react-testing-library/intro/)
+## 📊 進捗状況
 
-### 参考リンク
+### Phase 1: 基盤構築 (完了 ✅)
 
-- [TypeScript ハンドブック](https://www.typescriptlang.org/docs/)
-- [Tailwind CSS ドキュメント](https://tailwindcss.com/docs)
-- [React Hook Form ドキュメント](https://react-hook-form.com/)
+- プロジェクト初期化
+- 認証システム
+- 基本レイアウト
+- Supabase 統合
 
-## 🔒 セキュリティ
+### Phase 2: コア機能 (完了 ✅)
 
-- Row Level Security (RLS) による データアクセス制御
-- HTTPS 通信の強制
-- 入力値のバリデーション（フロント・バック両方）
-- XSS・CSRF 対策
+- 日報作成機能
+- 日報一覧表示
+- 日報編集・削除
 
-## 📄 ライセンス
+### Phase 3: 最適化・拡張 (予定 📋)
 
-このプロジェクトは MIT ライセンスの下で公開されています。
+- 月次レポート
+- PDF 出力
+- パフォーマンス最適化
 
-## 🙋‍♂️ サポート
+## 🤝 コントリビューション
 
-質問やバグ報告は [Issues](https://github.com/your-username/driver-logbook-v3/issues) までお願いします。
+1. このリポジトリをフォーク
+2. 機能ブランチを作成 (`git checkout -b feature/AmazingFeature`)
+3. 変更をコミット (`git commit -m 'Add some AmazingFeature'`)
+4. ブランチにプッシュ (`git push origin feature/AmazingFeature`)
+5. プルリクエストを作成
+
+## 📝 ライセンス
+
+このプロジェクトは MIT ライセンスのもとで公開されています。詳細は [LICENSE](LICENSE) ファイルを参照してください。
+
+## 📞 サポート
+
+質問や不具合報告は [Issues](https://github.com/eight42910/driver-logbook-v3/issues) で受け付けています。
+
+## 🙏 謝辞
+
+- [Next.js](https://nextjs.org/) - 素晴らしい React フレームワーク
+- [Supabase](https://supabase.com/) - 完璧なバックエンドサービス
+- [shadcn/ui](https://ui.shadcn.com/) - 美しい UI コンポーネント
+- [Tailwind CSS](https://tailwindcss.com/) - 効率的な CSS
 
 ---
 
-**開発開始日**: 2025 年 6 月 4 日
-**目標リリース**: 2025 年 Q2
-**開発者**: [@eight-eight-eight](https://github.com/)
+**最終更新**: 2025 年 7 月 9 日
+**バージョン**: v0.2.0 (MVP)

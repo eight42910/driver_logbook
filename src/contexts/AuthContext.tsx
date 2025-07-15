@@ -20,9 +20,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
 
-  // ユーザープロフィールを取得する関数
-  const fetchUserProfile = async (userId: string) => {
-    console.log('📡 プロフィール取得開始:', userId);
+  // プロフィール取得
+  const fetchUserProfile = async (
+    userId: string
+  ): Promise<UserProfile | null> => {
     try {
       const { data, error } = await supabase
         .from('users')
@@ -30,36 +31,24 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         .eq('id', userId)
         .single();
 
-      console.log('📡 プロフィール取得レスポンス:', { data, error });
-
       if (error) {
-        console.error('❌ プロフィール取得エラー:', error);
-        // プロフィールが存在しない場合は基本的なプロフィールを返す
-        if (error.code === 'PGRST116') {
-          console.log('⚠️ プロフィール未存在、基本プロフィールを作成');
-          // レコードが見つからない場合
-          return {
-            id: userId,
-            email: '',
-            display_name: null,
-            company_name: null,
-            vehicle_info: null,
-            created_at: new Date().toISOString(),
-            updated_at: new Date().toISOString(),
-          };
-        }
-        return null;
+        return {
+          id: userId,
+          email: '',
+          display_name: undefined,
+          company_name: undefined,
+          vehicle_info: undefined,
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+        };
       }
-
-      console.log('✅ プロフィール取得成功:', data);
       return data;
     } catch (error) {
-      console.error('❌ プロフィール取得例外:', error);
       return null;
     }
   };
 
-  // ユーザー情報を更新する関数
+  // ユーザー情報を更新
   const refreshUser = async () => {
     try {
       const {
@@ -74,80 +63,75 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         setUserProfile(null);
       }
     } catch (error) {
-      console.error('Error refreshing user:', error);
+      setUser(null);
+      setUserProfile(null);
     }
   };
 
-  // サインアウト関数
+  // サインアウト
   const signOut = async () => {
     try {
       await supabase.auth.signOut();
       setUser(null);
       setUserProfile(null);
     } catch (error) {
-      console.error('Error signing out:', error);
+      setUser(null);
+      setUserProfile(null);
     }
   };
 
   useEffect(() => {
-    // 初回読み込み時の認証状態チェック
-    const getInitialAuth = async () => {
+    // 初回認証状態チェック（最適化版）
+    const initializeAuth = async () => {
       try {
+        console.log('🔄 AuthContext初期化開始');
+
+        // より高速な初期化
         const {
           data: { user },
         } = await supabase.auth.getUser();
 
-        console.log('🔍 初回認証チェック完了:', {
-          user: !!user,
-          userId: user?.id,
-        });
+        console.log('🔍 初期認証状態:', user ? 'ログイン済み' : '未ログイン');
         setUser(user);
 
-        // 認証済みの場合のみプロフィール取得（非同期で実行）
+        // プロフィール取得は非同期で実行（ローディング完了を待たない）
         if (user) {
-          fetchUserProfile(user.id)
-            .then((profile) => {
-              setUserProfile(profile);
-            })
-            .catch((error) => {
-              console.error('プロフィール取得エラー:', error);
-            });
+          fetchUserProfile(user.id).then(setUserProfile);
         }
       } catch (error) {
-        console.error('初回認証チェックエラー:', error);
+        console.error('❌ 認証初期化エラー:', error);
+        setUser(null);
+        setUserProfile(null);
       } finally {
-        // 認証状態チェックは即座に完了
+        // ローディング状態を早期に完了
         setLoading(false);
+        console.log('✅ AuthContext初期化完了');
       }
     };
 
-    getInitialAuth();
+    initializeAuth();
 
-    // 認証状態の変更を監視
+    // 認証状態変更の監視
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange(async (event, session) => {
-      console.log('🔄 Auth状態変更:', event, session?.user?.id);
+      console.log('🔄 認証状態変更:', event);
 
       if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {
-        console.log('✅ ログイン検出:', session?.user?.id);
         setUser(session?.user ?? null);
         if (session?.user) {
-          console.log('📡 プロフィール取得開始...');
           const profile = await fetchUserProfile(session.user.id);
-          console.log('📡 プロフィール取得完了:', profile);
           setUserProfile(profile);
         }
       } else if (event === 'SIGNED_OUT') {
-        console.log('👋 ログアウト検出');
         setUser(null);
         setUserProfile(null);
       }
-      setLoading(false);
-      console.log('🔄 Auth loading完了');
     });
 
-    return () => subscription.unsubscribe();
+    return () => {
+      subscription.unsubscribe();
+    };
   }, []);
 
   const value: AuthContextType = {

@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useForm } from 'react-hook-form';
@@ -30,10 +30,45 @@ type LoginForm = z.infer<typeof loginSchema>;
 export default function LoginPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [redirecting, setRedirecting] = useState(false);
   const router = useRouter();
   const { user, loading } = useAuth();
 
-  // フォームの初期化（hooksは条件分岐より前に配置）
+  // AuthContextから認証状態を監視してリダイレクト
+  useEffect(() => {
+    console.log('🔍 ログインページ認証チェック:', {
+      loading,
+      user: !!user,
+      userId: user?.id,
+      redirecting,
+    });
+
+    // 認証状態の確認が完了し、ログイン済みの場合はダッシュボードにリダイレクト
+    if (!loading && user && !redirecting) {
+      console.log('✅ ログイン済み、ダッシュボードにリダイレクト');
+      setRedirecting(true);
+      router.push('/dashboard');
+    }
+  }, [user, loading, router, redirecting]);
+
+  // 認証状態確認中またはリダイレクト中は読み込み表示
+  if (loading || redirecting) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <p className="text-gray-600">認証状態を確認中...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // 既にログインしている場合は何も表示しない
+  if (user) {
+    return null;
+  }
+
+  // フォームの初期化
   const form = useForm<LoginForm>({
     resolver: zodResolver(loginSchema),
     defaultValues: {
@@ -42,55 +77,33 @@ export default function LoginPage() {
     },
   });
 
-  // 既にログインしている場合はダッシュボードにリダイレクト
-  React.useEffect(() => {
-    if (user) {
-      console.log('✅ 既にログイン済み、ダッシュボードにリダイレクト');
-      router.push('/dashboard');
-    }
-  }, [user, router]);
-
-  // 既にログインしている場合は何も表示しない（リダイレクト中）
-  if (user) {
-    return null;
-  }
-
-  // ログイン画面を表示（認証状態の初回チェックは気にしない）
-
   const onSubmit = async (data: LoginForm) => {
     console.log('🔄 ログイン開始:', data.email);
     setIsLoading(true);
     setError(null);
 
     try {
-      console.log('📡 Supabase認証リクエスト送信...');
+      // Supabaseでログイン
       const { data: authData, error: authError } =
         await supabase.auth.signInWithPassword({
           email: data.email,
           password: data.password,
         });
 
-      console.log('📡 Supabase認証レスポンス:', { authData, authError });
-
       if (authError) {
-        console.error('❌ 認証エラー:', authError);
-        throw authError;
+        console.error('❌ ログインエラー:', authError);
+        setError('メールアドレスまたはパスワードが間違っています');
+        return;
       }
 
       if (authData.user) {
         console.log('✅ ログイン成功:', authData.user.id);
-        console.log('🔄 認証状態更新を待機中...');
-
-        // AuthContextが状態を更新するまで少し待つ
-        setTimeout(() => {
-          console.log('🔄 ダッシュボードにリダイレクト');
-          router.push('/dashboard');
-        }, 1000);
-        return;
+        console.log('🔄 AuthContextの状態変更を待機中...');
+        // AuthContextが自動的に状態を更新し、useEffectでリダイレクトされる
       }
     } catch (error: any) {
       console.error('❌ ログインエラー:', error);
-      setError(error.message || 'ログインに失敗しました');
+      setError('ログインに失敗しました');
     } finally {
       setIsLoading(false);
     }
@@ -121,6 +134,7 @@ export default function LoginPage() {
                 id="email"
                 type="email"
                 placeholder="example@company.com"
+                autoComplete="email"
                 {...form.register('email')}
                 className={form.formState.errors.email ? 'border-red-500' : ''}
               />
@@ -137,6 +151,7 @@ export default function LoginPage() {
                 id="password"
                 type="password"
                 placeholder="パスワードを入力"
+                autoComplete="current-password"
                 {...form.register('password')}
                 className={
                   form.formState.errors.password ? 'border-red-500' : ''
