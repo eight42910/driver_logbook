@@ -64,10 +64,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           setTimeout(() => reject(new Error('Database query timeout')), 5000)
         );
 
-        const result = (await Promise.race([
-          queryPromise,
-          timeoutPromise,
-        ])) as any;
+        const result = (await Promise.race([queryPromise, timeoutPromise])) as {
+          data: UserProfile | null;
+          error: {
+            code?: string;
+            message: string;
+            details?: string;
+            hint?: string;
+          } | null;
+        };
         const { data, error } = result;
 
         if (error) {
@@ -206,7 +211,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         const {
           data: { user },
           error,
-        } = (await Promise.race([getUserPromise, timeoutPromise])) as any;
+        } = (await Promise.race([getUserPromise, timeoutPromise])) as {
+          data: { user: User | null };
+          error: Error | null;
+        };
 
         if (error) {
           console.error('❌ getUser エラー:', error);
