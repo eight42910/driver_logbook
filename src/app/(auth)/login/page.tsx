@@ -34,6 +34,15 @@ export default function LoginPage() {
   const router = useRouter();
   const { user, loading } = useAuth();
 
+  // フォームの初期化（Hooksは条件文の前に呼ぶ必要がある）
+  const form = useForm<LoginForm>({
+    resolver: zodResolver(loginSchema),
+    defaultValues: {
+      email: '',
+      password: '',
+    },
+  });
+
   // AuthContextから認証状態を監視してリダイレクト
   useEffect(() => {
     console.log('🔍 ログインページ認証チェック:', {
@@ -68,15 +77,6 @@ export default function LoginPage() {
     return null;
   }
 
-  // フォームの初期化
-  const form = useForm<LoginForm>({
-    resolver: zodResolver(loginSchema),
-    defaultValues: {
-      email: '',
-      password: '',
-    },
-  });
-
   const onSubmit = async (data: LoginForm) => {
     console.log('🔄 ログイン開始:', data.email);
     setIsLoading(true);
@@ -101,7 +101,7 @@ export default function LoginPage() {
         console.log('🔄 AuthContextの状態変更を待機中...');
         // AuthContextが自動的に状態を更新し、useEffectでリダイレクトされる
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('❌ ログインエラー:', error);
       setError('ログインに失敗しました');
     } finally {

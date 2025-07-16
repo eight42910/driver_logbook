@@ -4,7 +4,13 @@ import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from '@/components/ui/sheet';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import {
   DropdownMenu,
@@ -41,7 +47,6 @@ export function Header() {
   // 認証が必要ないページかチェック
   const isAuthPage =
     pathname?.startsWith('/login') || pathname?.startsWith('/register');
-  const isHomePage = pathname === '/';
 
   const handleSignOut = async () => {
     await signOut();
@@ -167,11 +172,11 @@ export function Header() {
                     </Button>
                   </SheetTrigger>
                   <SheetContent side="right" className="w-[300px] sm:w-[400px]">
+                    <SheetHeader>
+                      <SheetTitle>ナビゲーション</SheetTitle>
+                    </SheetHeader>
                     <nav className="flex flex-col space-y-4">
                       <div className="px-3 py-2">
-                        <h2 className="mb-2 px-4 text-lg font-semibold">
-                          ナビゲーション
-                        </h2>
                         <div className="space-y-1">
                           {navigationItems.map((item) => {
                             const Icon = item.icon;

@@ -4,12 +4,18 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/contexts/AuthContext';
+import { Button } from '@/components/ui/button';
 import {
   HomeIcon,
   BookOpenIcon,
   BarChart3Icon,
   SettingsIcon,
   UserIcon,
+  LayoutDashboard,
+  FileText,
+  Wrench,
+  Receipt,
+  Settings,
 } from 'lucide-react';
 
 const sidebarItems = [
@@ -29,7 +35,7 @@ const sidebarItems = [
     icon: BookOpenIcon,
   },
   {
-    href: '/monthly-reports',
+    href: '/reports/monthly',
     label: '月次レポート',
     icon: BarChart3Icon,
   },
@@ -124,7 +130,7 @@ export function Sidebar() {
  * モバイル用サイドバーコンポーネント
  * シンプルなリンクリスト
  */
-export function MobileSidebar({ className }: SidebarProps) {
+export function MobileSidebar({ className }: { className?: string }) {
   const pathname = usePathname();
 
   const routes = [

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -31,7 +31,7 @@ interface FilterOptions {
 const ITEMS_PER_PAGE = 10;
 
 export default function DailyReportsListPage() {
-  const { user, userProfile } = useAuth();
+  const { user } = useAuth();
   const [currentView, setCurrentView] = useState<'table' | 'calendar'>('table');
 
   // データ状態
@@ -63,7 +63,7 @@ export default function DailyReportsListPage() {
   const [deleteError, setDeleteError] = useState<string | null>(null);
 
   // データ取得関数
-  const fetchReports = async () => {
+  const fetchReports = useCallback(async () => {
     if (!user?.id) return;
 
     setLoading(true);
@@ -96,12 +96,12 @@ export default function DailyReportsListPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [user?.id, currentPage, filters]);
 
   // 初回ロードとフィルター・ページ変更時のデータ取得
   useEffect(() => {
     fetchReports();
-  }, [user?.id, currentPage, filters]);
+  }, [fetchReports]);
 
   // フィルター更新関数
   const updateFilters = (newFilters: Partial<FilterOptions>) => {

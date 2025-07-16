@@ -89,8 +89,6 @@ export interface Database {
         >;
       };
     };
-    Views: {
-      // 将来的にビューが必要な場合はここに追加
-    };
+    Views: Record<string, never>;
   };
 }

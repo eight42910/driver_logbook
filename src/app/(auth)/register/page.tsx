@@ -131,9 +131,10 @@ export default function RegisterPage() {
         console.log('🔄 AuthContextの状態変更を待機中...');
         // AuthContextが自動的に状態を更新し、useEffectでリダイレクトされる
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('❌ 登録エラー:', error);
-      setError(error.message || '登録に失敗しました');
+      const errorMessage = error instanceof Error ? error.message : '登録に失敗しました';
+      setError(errorMessage);
     } finally {
       setIsLoading(false);
     }

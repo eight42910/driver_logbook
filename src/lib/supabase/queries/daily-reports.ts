@@ -146,49 +146,68 @@ export async function getDailyReports(
     searchQuery?: string;
   } = {}
 ): Promise<DailyReport[]> {
-  let query = supabase
-    .from('daily_reports')
-    .select('*')
-    .eq('user_id', userId)
-    .order('date', { ascending: false });
+  try {
+    console.log('📊 日報取得開始:', { userId, options });
 
-  // 期間フィルター
-  if (options.startDate) {
-    query = query.gte('date', options.startDate);
-  }
-  if (options.endDate) {
-    query = query.lte('date', options.endDate);
-  }
+    let query = supabase
+      .from('daily_reports')
+      .select('*')
+      .eq('user_id', userId)
+      .order('date', { ascending: false });
 
-  // 稼働状況フィルター
-  if (options.isWorked !== undefined) {
-    query = query.eq('is_worked', options.isWorked);
-  }
+    // 期間フィルター
+    if (options.startDate) {
+      query = query.gte('date', options.startDate);
+    }
+    if (options.endDate) {
+      query = query.lte('date', options.endDate);
+    }
 
-  // 検索フィルター（ノート内検索）
-  if (options.searchQuery) {
-    query = query.ilike('notes', `%${options.searchQuery}%`);
-  }
+    // 稼働状況フィルター
+    if (options.isWorked !== undefined) {
+      query = query.eq('is_worked', options.isWorked);
+    }
 
-  // ページネーション
-  if (options.limit) {
-    query = query.limit(options.limit);
-  }
-  if (options.offset) {
-    query = query.range(
-      options.offset,
-      options.offset + (options.limit || 50) - 1
+    // 検索フィルター（ノート内検索）
+    if (options.searchQuery) {
+      query = query.ilike('notes', `%${options.searchQuery}%`);
+    }
+
+    // ページネーション
+    if (options.limit) {
+      query = query.limit(options.limit);
+    }
+    if (options.offset) {
+      query = query.range(
+        options.offset,
+        options.offset + (options.limit || 50) - 1
+      );
+    }
+
+    const { data: reports, error } = await query;
+
+    if (error) {
+      console.error('📊 日報一覧取得エラー:', {
+        message: error.message,
+        code: error.code,
+        details: error.details,
+        hint: error.hint,
+        userId,
+        options,
+      });
+      throw new Error(`日報一覧の取得に失敗しました: ${error.message}`);
+    }
+
+    console.log('📊 日報取得成功:', reports?.length || 0, '件');
+    return reports || [];
+  } catch (e) {
+    console.error('📊 日報一覧取得キャッチエラー:', e);
+    throw new Error(
+      `日報一覧の取得に失敗しました: ${
+        e instanceof Error ? e.message : 'Unknown error'
+      }`
     );
   }
-
-  const { data: reports, error } = await query;
-
-  if (error) {
-    console.error('日報一覧取得エラー:', error);
-    throw new Error(`日報一覧の取得に失敗しました: ${error.message}`);
-  }
-
-  return reports || [];
 }
 
 /**
@@ -316,42 +335,62 @@ export async function getMonthlyStats(
   totalTollFee: number;
   totalHours: number;
 }> {
-  const startDate = `${year}-${month.toString().padStart(2, '0')}-01`;
-  const endDate = `${year}-${month.toString().padStart(2, '0')}-31`;
+  try {
+    console.log('📈 月間統計取得開始:', { userId, year, month });
 
-  const { data: reports, error } = await supabase
-    .from('daily_reports')
-    .select('*')
-    .eq('user_id', userId)
-    .gte('date', startDate)
-    .lte('date', endDate);
+    const startDate = `${year}-${month.toString().padStart(2, '0')}-01`;
+    const endDate = `${year}-${month.toString().padStart(2, '0')}-31`;
 
-  if (error) {
-    console.error('月間統計取得エラー:', error);
-    throw new Error(`月間統計の取得に失敗しました: ${error.message}`);
+    const { data: reports, error } = await supabase
+      .from('daily_reports')
+      .select('*')
+      .eq('user_id', userId)
+      .gte('date', startDate)
+      .lte('date', endDate);
+
+    if (error) {
+      console.error('📈 月間統計取得エラー:', {
+        message: error.message,
+        code: error.code,
+        details: error.details,
+        hint: error.hint,
+        userId,
+        year,
+        month,
+      });
+      throw new Error(`月間統計の取得に失敗しました: ${error.message}`);
+    }
+
+    // 統計計算
+    const workingReports = reports?.filter((r) => r.is_worked) || [];
+
+    const stats = {
+      workingDays: workingReports.length,
+      totalDistance: workingReports.reduce(
+        (sum, r) => sum + (r.distance_km || 0),
+        0
+      ),
+      totalDeliveries: workingReports.reduce(
+        (sum, r) => sum + (r.deliveries || 0),
+        0
+      ),
+      totalTollFee: workingReports.reduce(
+        (sum, r) => sum + (r.highway_fee || 0),
+        0
+      ),
+      totalHours: 0, // TODO: 時間計算を実装
+    };
+
+    console.log('📈 月間統計取得成功:', stats);
+    return stats;
+  } catch (e) {
+    console.error('📈 月間統計取得キャッチエラー:', e);
+    throw new Error(
+      `月間統計の取得に失敗しました: ${
+        e instanceof Error ? e.message : 'Unknown error'
+      }`
+    );
   }
-
-  // 統計計算
-  const workingReports = reports?.filter((r) => r.is_worked) || [];
-
-  const stats = {
-    workingDays: workingReports.length,
-    totalDistance: workingReports.reduce(
-      (sum, r) => sum + (r.distance_km || 0),
-      0
-    ),
-    totalDeliveries: workingReports.reduce(
-      (sum, r) => sum + (r.deliveries || 0),
-      0
-    ),
-    totalTollFee: workingReports.reduce(
-      (sum, r) => sum + (r.highway_fee || 0),
-      0
-    ),
-    totalHours: 0, // TODO: 時間計算を実装
-  };
-
-  return stats;
 }
 
 /**

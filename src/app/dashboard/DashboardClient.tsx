@@ -16,6 +16,7 @@ import {
   getMonthlyStats,
   getDailyReports,
 } from '@/lib/supabase/queries/daily-reports';
+import { DailyReport } from '@/types/database';
 import { PlusIcon, BookOpenIcon, TruckIcon, CalendarIcon } from 'lucide-react';
 import Link from 'next/link';
 
@@ -33,7 +34,7 @@ export default function DashboardClient() {
   const router = useRouter();
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [statsLoading, setStatsLoading] = useState(true);
-  const [recentReports, setRecentReports] = useState<any[]>([]);
+  const [recentReports, setRecentReports] = useState<DailyReport[]>([]);
 
   // シンプルな認証チェック
   useEffect(() => {
@@ -41,6 +42,15 @@ export default function DashboardClient() {
       router.push('/login');
     }
   }, [user, loading, router]);
+
+  // デバッグ用：ユーザー情報の確認
+  useEffect(() => {
+    console.log('🎯 ダッシュボード - ユーザー状態:', {
+      loading,
+      user: user ? { id: user.id, email: user.email } : null,
+      userProfile: userProfile,
+    });
+  }, [loading, user, userProfile]);
 
   // 統計データとレポート履歴を取得
   useEffect(() => {
@@ -94,7 +104,11 @@ export default function DashboardClient() {
         {/* ウェルカムメッセージ */}
         <div className="bg-gradient-to-r from-blue-600 to-blue-700 rounded-lg p-6 text-white">
           <h1 className="text-2xl font-bold mb-2">
-            おかえりなさい、{userProfile?.display_name || 'ドライバー'}さん！
+            おかえりなさい、
+            {userProfile?.display_name ||
+              user?.email?.split('@')[0] ||
+              'ドライバー'}
+            さん！
           </h1>
           <p className="text-blue-100">
             {userProfile?.company_name ? `${userProfile.company_name}での` : ''}
