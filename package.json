@@ -1,5 +1,5 @@
 {
-  "name": "driver-logbook-v3",
+  "name": "driver_logbook",
   "version": "0.1.0",
   "private": true,
   "scripts": {
