@@ -1,6 +1,7 @@
 {
   "name": "driver_logbook",
-  "buildCommand": "npm run build",
   "framework": "nextjs",
+  "buildCommand": "npm run build",
+  "installCommand": "npm install",
   "nodejs": "18.x"
 }
