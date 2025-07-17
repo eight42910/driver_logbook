@@ -24,6 +24,8 @@ import {
   Filter,
   ChevronLeft,
   ChevronRight,
+  ChevronDown,
+  ChevronUp,
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { ja } from 'date-fns/locale';
@@ -44,7 +46,7 @@ const ITEMS_PER_PAGE = 10;
  *
  * 機能：
  * - 日報一覧表示
- * - 検索・フィルタリング
+ * - 検索・フィルタリング（折りたたみ可能）
  * - ページネーション
  * - 編集・削除機能
  * - ソート機能（日付順）
@@ -56,6 +58,7 @@ export default function ReportsListPage() {
   const [isLoadingData, setIsLoadingData] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
   const [deleteTargetId, setDeleteTargetId] = useState<number | null>(null);
+  const [isFilterExpanded, setIsFilterExpanded] = useState(false);
 
   // フィルター状態
   const [filters, setFilters] = useState<FilterState>({
@@ -186,85 +189,131 @@ export default function ReportsListPage() {
         {/* 検索・フィルター */}
         <Card>
           <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Filter className="h-5 w-5" />
-              検索・フィルター
-            </CardTitle>
+            <div className="flex items-center justify-between">
+              <CardTitle className="flex items-center gap-2">
+                <Filter className="h-5 w-5" />
+                検索・フィルター
+              </CardTitle>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setIsFilterExpanded(!isFilterExpanded)}
+                className="md:hidden"
+              >
+                {isFilterExpanded ? (
+                  <>
+                    <ChevronUp className="h-4 w-4 mr-1" />
+                    閉じる
+                  </>
+                ) : (
+                  <>
+                    <ChevronDown className="h-4 w-4 mr-1" />
+                    詳細
+                  </>
+                )}
+              </Button>
+            </div>
           </CardHeader>
           <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-              {/* 日付範囲 */}
-              <div className="space-y-2">
-                <Label htmlFor="dateFrom">開始日</Label>
+            {/* モバイル用コンパクト検索（常に表示） */}
+            <div className="md:hidden mb-4">
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
                 <Input
-                  id="dateFrom"
-                  type="date"
-                  value={filters.dateFrom}
+                  placeholder="キーワードで検索"
+                  className="pl-10"
+                  value={filters.searchText}
                   onChange={(e) =>
                     setFilters((prev) => ({
                       ...prev,
-                      dateFrom: e.target.value,
+                      searchText: e.target.value,
                     }))
                   }
                 />
               </div>
-              <div className="space-y-2">
-                <Label htmlFor="dateTo">終了日</Label>
-                <Input
-                  id="dateTo"
-                  type="date"
-                  value={filters.dateTo}
-                  onChange={(e) =>
-                    setFilters((prev) => ({ ...prev, dateTo: e.target.value }))
-                  }
-                />
-              </div>
+            </div>
 
-              {/* 稼働状況 */}
-              <div className="space-y-2">
-                <Label htmlFor="workStatus">稼働状況</Label>
-                <select
-                  id="workStatus"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  value={filters.workStatus}
-                  onChange={(e) =>
-                    setFilters((prev) => ({
-                      ...prev,
-                      workStatus: e.target.value as FilterState['workStatus'],
-                    }))
-                  }
-                >
-                  <option value="all">すべて</option>
-                  <option value="worked">稼働日のみ</option>
-                  <option value="not_worked">非稼働日のみ</option>
-                </select>
-              </div>
-
-              {/* テキスト検索 */}
-              <div className="space-y-2">
-                <Label htmlFor="searchText">キーワード検索</Label>
-                <div className="relative">
-                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+            {/* 詳細フィルター（デスクトップ常時表示、モバイル展開時表示） */}
+            <div
+              className={`${isFilterExpanded ? 'block' : 'hidden'} md:block`}
+            >
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                {/* 日付範囲 */}
+                <div className="space-y-2">
+                  <Label htmlFor="dateFrom">開始日</Label>
                   <Input
-                    id="searchText"
-                    placeholder="ルート、備考で検索"
-                    className="pl-10"
-                    value={filters.searchText}
+                    id="dateFrom"
+                    type="date"
+                    value={filters.dateFrom}
                     onChange={(e) =>
                       setFilters((prev) => ({
                         ...prev,
-                        searchText: e.target.value,
+                        dateFrom: e.target.value,
                       }))
                     }
                   />
                 </div>
-              </div>
-            </div>
+                <div className="space-y-2">
+                  <Label htmlFor="dateTo">終了日</Label>
+                  <Input
+                    id="dateTo"
+                    type="date"
+                    value={filters.dateTo}
+                    onChange={(e) =>
+                      setFilters((prev) => ({
+                        ...prev,
+                        dateTo: e.target.value,
+                      }))
+                    }
+                  />
+                </div>
 
-            <div className="mt-4 flex justify-end">
-              <Button variant="outline" onClick={resetFilters}>
-                フィルターリセット
-              </Button>
+                {/* 稼働状況 */}
+                <div className="space-y-2">
+                  <Label htmlFor="workStatus">稼働状況</Label>
+                  <select
+                    id="workStatus"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    value={filters.workStatus}
+                    onChange={(e) =>
+                      setFilters((prev) => ({
+                        ...prev,
+                        workStatus: e.target.value as FilterState['workStatus'],
+                      }))
+                    }
+                  >
+                    <option value="all">すべて</option>
+                    <option value="worked">稼働日のみ</option>
+                    <option value="not_worked">非稼働日のみ</option>
+                  </select>
+                </div>
+
+                {/* テキスト検索（デスクトップ用） */}
+                <div className="space-y-2 hidden md:block">
+                  <Label htmlFor="searchTextDesktop">キーワード検索</Label>
+                  <div className="relative">
+                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                    <Input
+                      id="searchTextDesktop"
+                      placeholder="ルート、備考で検索"
+                      className="pl-10"
+                      value={filters.searchText}
+                      onChange={(e) =>
+                        setFilters((prev) => ({
+                          ...prev,
+                          searchText: e.target.value,
+                        }))
+                      }
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <div className="mt-4 flex justify-end">
+                <Button variant="outline" onClick={resetFilters}>
+                  フィルターリセット
+                </Button>
+              </div>
             </div>
           </CardContent>
         </Card>

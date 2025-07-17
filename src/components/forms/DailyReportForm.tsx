@@ -9,7 +9,10 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useAuth } from '@/contexts/AuthContext';
-import { upsertDailyReport } from '@/lib/supabase/queries/daily-reports';
+import {
+  upsertDailyReport,
+  getLatestOdometerReading,
+} from '@/lib/supabase/queries/daily-reports';
 import {
   DailyReportFormData as DailyReportFormType,
   dailyReportSchema,
@@ -33,6 +36,7 @@ export function DailyReportForm() {
   const [submitSuccess, setSubmitSuccess] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [countdown, setCountdown] = useState<number | null>(null);
+  const [latestOdometer, setLatestOdometer] = useState<number | null>(null);
 
   const form = useForm<DailyReportFormType>({
     resolver: zodResolver(dailyReportSchema),
@@ -58,11 +62,34 @@ export function DailyReportForm() {
   // 距離自動計算（メーター一周も考慮）
   const calculatedDistance = calculateDistance(startOdometer, endOdometer);
 
+  // 最新メーター値の取得
+  useEffect(() => {
+    const fetchLatestOdometer = async () => {
+      if (user?.id) {
+        try {
+          const latestReading = await getLatestOdometerReading(user.id);
+          setLatestOdometer(latestReading);
+        } catch (error) {
+          console.error('最新メーター値取得エラー:', error);
+        }
+      }
+    };
+
+    fetchLatestOdometer();
+  }, [user?.id]);
+
   // 現在時刻設定
   const setCurrentTime = (field: 'start_time' | 'end_time') => {
     const now = new Date();
     const timeString = now.toTimeString().slice(0, 5);
     setValue(field, timeString);
+  };
+
+  // 前回のメーター値を設定
+  const setPreviousOdometer = () => {
+    if (latestOdometer !== null) {
+      setValue('start_odometer', latestOdometer);
+    }
   };
 
   // カウントダウンタイマー
@@ -293,14 +320,33 @@ export function DailyReportForm() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="start_odometer">開始メーター (km)</Label>
-                  <Input
-                    id="start_odometer"
-                    type="number"
-                    min="0"
-                    max="999999"
-                    {...register('start_odometer', { valueAsNumber: true })}
-                    className="w-full"
-                  />
+                  <div className="flex space-x-2">
+                    <Input
+                      id="start_odometer"
+                      type="number"
+                      min="0"
+                      max="999999"
+                      {...register('start_odometer', { valueAsNumber: true })}
+                      className="flex-1"
+                    />
+                    {latestOdometer !== null && (
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={setPreviousOdometer}
+                        className="whitespace-nowrap"
+                        title={`前回の終了値: ${latestOdometer}km`}
+                      >
+                        前回値
+                      </Button>
+                    )}
+                  </div>
+                  {latestOdometer !== null && (
+                    <p className="text-xs text-gray-500">
+                      前回の終了値: {latestOdometer}km
+                    </p>
+                  )}
                   {errors.start_odometer && (
                     <p className="text-sm text-red-500">
                       {errors.start_odometer.message}
