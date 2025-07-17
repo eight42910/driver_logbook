@@ -1,15 +1,11 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import Link from 'next/link';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { supabase } from '@/lib/supabase/client';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
+import Link from 'next/link';
 import {
   Card,
   CardContent,
@@ -17,25 +13,39 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
-import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { useAuth } from '@/contexts/AuthContext';
+import { Loader2, Mail, Lock } from 'lucide-react';
 
+// バリデーションスキーマ
 const loginSchema = z.object({
-  email: z.string().email('有効なメールアドレスを入力してください'),
+  email: z
+    .string()
+    .min(1, 'メールアドレスは必須です')
+    .email('有効なメールアドレスを入力してください'),
   password: z.string().min(6, 'パスワードは6文字以上で入力してください'),
 });
 
-type LoginForm = z.infer<typeof loginSchema>;
+type LoginFormData = z.infer<typeof loginSchema>;
 
+/**
+ * ログインページ
+ *
+ * 機能：
+ * - メールアドレス・パスワードでのログイン
+ * - フォームバリデーション
+ * - エラーハンドリング
+ * - 新規登録ページへのリンク
+ */
 export default function LoginPage() {
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [redirecting, setRedirecting] = useState(false);
+  const { signIn } = useAuth();
   const router = useRouter();
-  const { user, loading } = useAuth();
+  const [isLoading, setIsLoading] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
-  // フォームの初期化（Hooksは条件文の前に呼ぶ必要がある）
-  const form = useForm<LoginForm>({
+  const form = useForm<LoginFormData>({
     resolver: zodResolver(loginSchema),
     defaultValues: {
       email: '',
@@ -43,143 +53,149 @@ export default function LoginPage() {
     },
   });
 
-  // AuthContextから認証状態を監視してリダイレクト
-  useEffect(() => {
-    console.log('🔍 ログインページ認証チェック:', {
-      loading,
-      user: !!user,
-      userId: user?.id,
-      redirecting,
-    });
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = form;
 
-    // 認証状態の確認が完了し、ログイン済みの場合はダッシュボードにリダイレクト
-    if (!loading && user && !redirecting) {
-      console.log('✅ ログイン済み、ダッシュボードにリダイレクト');
-      setRedirecting(true);
-      router.push('/dashboard');
-    }
-  }, [user, loading, router, redirecting]);
-
-  // 認証状態確認中またはリダイレクト中は読み込み表示
-  if (loading || redirecting) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">認証状態を確認中...</p>
-        </div>
-      </div>
-    );
-  }
-
-  // 既にログインしている場合は何も表示しない
-  if (user) {
-    return null;
-  }
-
-  const onSubmit = async (data: LoginForm) => {
-    console.log('🔄 ログイン開始:', data.email);
+  // ログイン処理
+  const onSubmit = async (data: LoginFormData) => {
     setIsLoading(true);
-    setError(null);
+    setErrorMessage(null);
 
     try {
-      // Supabaseでログイン
-      const { data: authData, error: authError } =
-        await supabase.auth.signInWithPassword({
-          email: data.email,
-          password: data.password,
-        });
+      await signIn(data.email, data.password);
 
-      if (authError) {
-        console.error('❌ ログインエラー:', authError);
-        setError('メールアドレスまたはパスワードが間違っています');
-        return;
-      }
+      // ログイン成功後はダッシュボードにリダイレクト
+      router.push('/dashboard');
+    } catch (error) {
+      console.error('ログインエラー:', error);
 
-      if (authData.user) {
-        console.log('✅ ログイン成功:', authData.user.id);
-        console.log('🔄 AuthContextの状態変更を待機中...');
-        // AuthContextが自動的に状態を更新し、useEffectでリダイレクトされる
+      // エラーメッセージの表示
+      if (error instanceof Error) {
+        if (error.message.includes('Invalid login credentials')) {
+          setErrorMessage('メールアドレスまたはパスワードが正しくありません');
+        } else if (error.message.includes('Email not confirmed')) {
+          setErrorMessage(
+            'メールアドレスの確認が完了していません。メールをご確認ください'
+          );
+        } else {
+          setErrorMessage(
+            'ログインに失敗しました。時間をおいて再度お試しください'
+          );
+        }
+      } else {
+        setErrorMessage('不明なエラーが発生しました');
       }
-    } catch (error: unknown) {
-      console.error('❌ ログインエラー:', error);
-      setError('ログインに失敗しました');
     } finally {
       setIsLoading(false);
     }
   };
 
   return (
-    <div className="flex items-center justify-center min-h-screen p-4">
-      <Card className="w-full max-w-md">
-        <CardHeader className="space-y-1">
-          <CardTitle className="text-2xl font-bold text-center">
-            ログイン
-          </CardTitle>
-          <CardDescription className="text-center">
-            運転手日報システムにログインしてください
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-            {error && (
-              <Alert variant="destructive">
-                <AlertDescription>{error}</AlertDescription>
-              </Alert>
-            )}
+    <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
+      <div className="max-w-md w-full space-y-8">
+        {/* ヘッダー */}
+        <div className="text-center">
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">
+            Driver Logbook v3
+          </h1>
+          <p className="text-gray-600">ドライバー業務効率化システム</p>
+        </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="email">メールアドレス</Label>
-              <Input
-                id="email"
-                type="email"
-                placeholder="example@company.com"
-                autoComplete="email"
-                {...form.register('email')}
-                className={form.formState.errors.email ? 'border-red-500' : ''}
-              />
-              {form.formState.errors.email && (
-                <p className="text-sm text-red-500">
-                  {form.formState.errors.email.message}
-                </p>
+        {/* ログインフォーム */}
+        <Card className="mt-8">
+          <CardHeader className="space-y-1">
+            <CardTitle className="text-2xl text-center">ログイン</CardTitle>
+            <CardDescription className="text-center">
+              アカウントにログインしてください
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+              {/* エラーメッセージ */}
+              {errorMessage && (
+                <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-md">
+                  {errorMessage}
+                </div>
               )}
+
+              {/* メールアドレス */}
+              <div className="space-y-2">
+                <Label htmlFor="email" className="flex items-center gap-2">
+                  <Mail className="h-4 w-4" />
+                  メールアドレス
+                </Label>
+                <Input
+                  {...register('email')}
+                  id="email"
+                  type="email"
+                  autoComplete="email"
+                  placeholder="example@domain.com"
+                  className={errors.email ? 'border-red-500' : ''}
+                />
+                {errors.email && (
+                  <p className="text-sm text-red-600">{errors.email.message}</p>
+                )}
+              </div>
+
+              {/* パスワード */}
+              <div className="space-y-2">
+                <Label htmlFor="password" className="flex items-center gap-2">
+                  <Lock className="h-4 w-4" />
+                  パスワード
+                </Label>
+                <Input
+                  {...register('password')}
+                  id="password"
+                  type="password"
+                  autoComplete="current-password"
+                  placeholder="パスワードを入力"
+                  className={errors.password ? 'border-red-500' : ''}
+                />
+                {errors.password && (
+                  <p className="text-sm text-red-600">
+                    {errors.password.message}
+                  </p>
+                )}
+              </div>
+
+              {/* ログインボタン */}
+              <Button type="submit" className="w-full" disabled={isLoading}>
+                {isLoading ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    ログイン中...
+                  </>
+                ) : (
+                  'ログイン'
+                )}
+              </Button>
+            </form>
+
+            {/* 新規登録リンク */}
+            <div className="mt-6 text-center">
+              <p className="text-sm text-gray-600">
+                アカウントをお持ちでない方は{' '}
+                <Link
+                  href="/register"
+                  className="font-medium text-blue-600 hover:text-blue-500 underline"
+                >
+                  新規登録
+                </Link>
+              </p>
             </div>
+          </CardContent>
+        </Card>
 
-            <div className="space-y-2">
-              <Label htmlFor="password">パスワード</Label>
-              <Input
-                id="password"
-                type="password"
-                placeholder="パスワードを入力"
-                autoComplete="current-password"
-                {...form.register('password')}
-                className={
-                  form.formState.errors.password ? 'border-red-500' : ''
-                }
-              />
-              {form.formState.errors.password && (
-                <p className="text-sm text-red-500">
-                  {form.formState.errors.password.message}
-                </p>
-              )}
-            </div>
-
-            <Button type="submit" className="w-full" disabled={isLoading}>
-              {isLoading ? 'ログイン中...' : 'ログイン'}
-            </Button>
-          </form>
-
-          <div className="mt-6 text-center text-sm">
-            <span className="text-gray-600">アカウントをお持ちでない方は </span>
-            <Link
-              href="/register"
-              className="text-blue-600 hover:underline font-medium"
-            >
-              新規登録
-            </Link>
-          </div>
-        </CardContent>
-      </Card>
+        {/* フッター */}
+        <div className="text-center">
+          <p className="text-xs text-gray-500">
+            © 2025 Driver Logbook v3. All rights reserved.
+          </p>
+        </div>
+      </div>
     </div>
   );
 }

@@ -3,179 +3,189 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';
-import { useAuth } from '@/contexts/AuthContext';
-import { Button } from '@/components/ui/button';
 import {
-  HomeIcon,
-  BookOpenIcon,
-  BarChart3Icon,
-  SettingsIcon,
-  UserIcon,
   LayoutDashboard,
   FileText,
-  Wrench,
-  Receipt,
+  BarChart3,
   Settings,
+  Truck,
+  List,
+  Plus,
+  Calendar,
 } from 'lucide-react';
 
-const sidebarItems = [
+// サイドバーナビゲーションアイテムの定義
+const sidebarNavItems = [
   {
+    title: 'ダッシュボード',
     href: '/dashboard',
-    label: 'ダッシュボード',
-    icon: HomeIcon,
+    icon: LayoutDashboard,
+    description: '概要と統計情報',
   },
   {
-    href: '/reports/list',
-    label: '日報一覧',
-    icon: BookOpenIcon,
+    title: '日報管理',
+    icon: FileText,
+    items: [
+      {
+        title: '新規作成',
+        href: '/reports',
+        icon: Plus,
+        description: '新しい日報を作成',
+      },
+      {
+        title: '一覧・編集',
+        href: '/reports/list',
+        icon: List,
+        description: '既存の日報を表示・編集',
+      },
+    ],
   },
   {
-    href: '/reports',
-    label: '日報作成',
-    icon: BookOpenIcon,
+    title: 'レポート',
+    icon: BarChart3,
+    items: [
+      {
+        title: '月次レポート',
+        href: '/reports/monthly',
+        icon: Calendar,
+        description: '月別の集計とエクスポート',
+      },
+    ],
   },
   {
-    href: '/reports/monthly',
-    label: '月次レポート',
-    icon: BarChart3Icon,
-  },
-  {
-    href: '/profile',
-    label: 'プロフィール',
-    icon: UserIcon,
-  },
-  {
+    title: '設定',
     href: '/settings',
-    label: '設定',
-    icon: SettingsIcon,
+    icon: Settings,
+    description: 'アプリケーション設定',
   },
 ];
 
 /**
  * サイドバーコンポーネント
- * デスクトップ表示時のメインナビゲーション
+ *
+ * 機能：
+ * - 階層化されたナビゲーション
+ * - アクティブな項目のハイライト
+ * - アイコンと説明付きのメニュー項目
+ * - レスポンシブ対応（デスクトップのみ表示）
  */
 export function Sidebar() {
   const pathname = usePathname();
-  const { userProfile } = useAuth();
+
+  // アクティブなルートの判定
+  const isActiveRoute = (href: string) => {
+    if (href === '/dashboard') {
+      return pathname === '/dashboard';
+    }
+    return pathname.startsWith(href);
+  };
 
   return (
-    <aside className="hidden w-64 md:flex flex-col bg-white border-r border-gray-200">
-      <div className="flex-1 flex flex-col pt-5 pb-4 overflow-y-auto">
-        {/* ユーザー情報 */}
-        <div className="flex items-center flex-shrink-0 px-4 mb-6">
-          <div className="flex-shrink-0">
-            <div className="h-10 w-10 rounded-full bg-blue-100 flex items-center justify-center">
-              <span className="text-sm font-medium text-blue-700">
-                {userProfile?.display_name?.charAt(0) || 'U'}
+    <div className="hidden lg:flex lg:w-64 lg:flex-col lg:fixed lg:inset-y-0 lg:z-40">
+      <div className="flex flex-col flex-1 min-h-0 bg-gray-50 border-r border-gray-200">
+        {/* ロゴ・ブランド */}
+        <div className="flex items-center h-16 px-4 bg-white border-b border-gray-200">
+          <Link href="/dashboard" className="flex items-center space-x-2">
+            <Truck className="h-8 w-8 text-blue-600" />
+            <div className="flex flex-col">
+              <span className="text-lg font-bold text-gray-900">
+                Driver Logbook
               </span>
+              <span className="text-xs text-gray-500">v3.0</span>
             </div>
-          </div>
-          <div className="ml-3">
-            <p className="text-sm font-medium text-gray-900">
-              {userProfile?.display_name || 'ユーザー'}
-            </p>
-            {userProfile?.company_name && (
-              <p className="text-xs text-gray-500">
-                {userProfile.company_name}
-              </p>
-            )}
-          </div>
+          </Link>
         </div>
 
         {/* ナビゲーション */}
-        <nav className="flex-1 px-2 space-y-1">
-          {sidebarItems.map((item) => {
-            const Icon = item.icon;
-            const isActive = pathname === item.href;
+        <nav className="flex-1 px-2 py-4 space-y-1 overflow-y-auto">
+          {sidebarNavItems.map((item) => {
+            // グループアイテム（サブメニューあり）
+            if (item.items) {
+              return (
+                <div key={item.title} className="space-y-1">
+                  {/* グループヘッダー */}
+                  <div className="px-3 py-2">
+                    <div className="flex items-center space-x-3">
+                      <item.icon className="h-5 w-5 text-gray-400" />
+                      <span className="text-sm font-medium text-gray-900">
+                        {item.title}
+                      </span>
+                    </div>
+                  </div>
 
+                  {/* サブメニュー */}
+                  <div className="ml-8 space-y-1">
+                    {item.items.map((subItem) => (
+                      <Link
+                        key={subItem.href}
+                        href={subItem.href}
+                        className={cn(
+                          'group flex items-center px-3 py-2 text-sm font-medium rounded-md transition-colors',
+                          isActiveRoute(subItem.href)
+                            ? 'bg-blue-100 text-blue-700 border-r-2 border-blue-700'
+                            : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
+                        )}
+                      >
+                        <subItem.icon
+                          className={cn(
+                            'mr-3 h-4 w-4 flex-shrink-0',
+                            isActiveRoute(subItem.href)
+                              ? 'text-blue-600'
+                              : 'text-gray-400 group-hover:text-gray-500'
+                          )}
+                        />
+                        <div className="flex flex-col">
+                          <span>{subItem.title}</span>
+                          <span className="text-xs text-gray-400">
+                            {subItem.description}
+                          </span>
+                        </div>
+                      </Link>
+                    ))}
+                  </div>
+                </div>
+              );
+            }
+
+            // 単一アイテム
             return (
               <Link
                 key={item.href}
-                href={item.href}
+                href={item.href!}
                 className={cn(
-                  'group flex items-center px-2 py-2 text-sm font-medium rounded-md transition-colors',
-                  isActive
-                    ? 'bg-blue-100 text-blue-700'
-                    : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+                  'group flex items-center px-3 py-2 text-sm font-medium rounded-md transition-colors',
+                  isActiveRoute(item.href!)
+                    ? 'bg-blue-100 text-blue-700 border-r-2 border-blue-700'
+                    : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
                 )}
               >
-                <Icon
+                <item.icon
                   className={cn(
                     'mr-3 h-5 w-5 flex-shrink-0',
-                    isActive
-                      ? 'text-blue-500'
+                    isActiveRoute(item.href!)
+                      ? 'text-blue-600'
                       : 'text-gray-400 group-hover:text-gray-500'
                   )}
                 />
-                {item.label}
+                <div className="flex flex-col">
+                  <span>{item.title}</span>
+                  <span className="text-xs text-gray-400">
+                    {item.description}
+                  </span>
+                </div>
               </Link>
             );
           })}
         </nav>
 
-        {/* ユーティリティ情報 */}
-        <div className="px-4 py-3 border-t border-gray-200">
-          <div className="text-xs text-gray-500">
-            <p className="mb-1">Version 3.0.0</p>
-            <p>© 2024 Driver Logbook</p>
+        {/* フッター */}
+        <div className="flex-shrink-0 p-4 border-t border-gray-200">
+          <div className="text-xs text-gray-500 text-center">
+            <p>© 2025 Driver Logbook v3</p>
+            <p>運転手業務効率化システム</p>
           </div>
         </div>
       </div>
-    </aside>
-  );
-}
-
-/**
- * モバイル用サイドバーコンポーネント
- * シンプルなリンクリスト
- */
-export function MobileSidebar({ className }: { className?: string }) {
-  const pathname = usePathname();
-
-  const routes = [
-    {
-      label: 'ダッシュボード',
-      icon: LayoutDashboard,
-      href: '/dashboard',
-    },
-    {
-      label: '日報管理',
-      icon: FileText,
-      href: '/reports',
-    },
-    {
-      label: 'メンテナンス',
-      icon: Wrench,
-      href: '/maintenance',
-    },
-    {
-      label: '経費管理',
-      icon: Receipt,
-      href: '/expenses',
-    },
-    {
-      label: '設定',
-      icon: Settings,
-      href: '/settings',
-    },
-  ];
-
-  return (
-    <nav className={cn('grid gap-2 text-lg font-medium', className)}>
-      {routes.map((route) => (
-        <Button
-          key={route.href}
-          asChild
-          variant={pathname === route.href ? 'default' : 'ghost'}
-          className="justify-start"
-        >
-          <Link href={route.href}>
-            <route.icon className="h-5 w-5 mr-3" />
-            {route.label}
-          </Link>
-        </Button>
-      ))}
-    </nav>
+    </div>
   );
 }

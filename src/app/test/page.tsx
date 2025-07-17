@@ -3,8 +3,8 @@ import { useEffect, useState } from 'react';
 import { supabase } from '@/lib/supabase/client';
 
 export default function TestPage() {
-  const [users, setUsers] = useState<unknown[]>([]);
-  const [reports, setReports] = useState<unknown[]>([]);
+  const [users, setUsers] = useState<any[]>([]);
+  const [reports, setReports] = useState<any[]>([]);
 
   useEffect(() => {
     async function fetchData() {
