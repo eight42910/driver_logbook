@@ -152,3 +152,28 @@ export async function getMonthlyReport(
   if (error && error.code !== 'PGRST116') throw error;
   return data;
 }
+
+/**
+ * 最新の稼働日の終了メーター値を取得
+ * 新規日報作成時の開始メーター値自動設定に使用
+ */
+export async function getLatestOdometerReading(
+  userId: string
+): Promise<number | null> {
+  const { data, error } = await supabase
+    .from('daily_reports')
+    .select('end_odometer')
+    .eq('user_id', userId)
+    .eq('is_worked', true)
+    .not('end_odometer', 'is', null)
+    .order('date', { ascending: false })
+    .limit(1)
+    .single();
+
+  if (error && error.code !== 'PGRST116') {
+    console.error('最新メーター値取得エラー:', error);
+    return null;
+  }
+
+  return data?.end_odometer || null;
+}

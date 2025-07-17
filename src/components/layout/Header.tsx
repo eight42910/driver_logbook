@@ -142,27 +142,55 @@ export function Header() {
                   <span className="sr-only">メニューを開く</span>
                 </Button>
               </SheetTrigger>
-              <SheetContent side="left" className="pr-0">
-                <nav className="flex flex-col space-y-3">
+              <SheetContent side="left" className="pr-0 w-72">
+                {/* モバイルメニューヘッダー */}
+                <div className="flex items-center space-x-2 pb-6 border-b">
+                  <Truck className="h-8 w-8 text-blue-600" />
+                  <div className="flex flex-col">
+                    <span className="text-lg font-bold text-gray-900">
+                      Driver Logbook
+                    </span>
+                    <span className="text-xs text-gray-500">v3.0</span>
+                  </div>
+                </div>
+
+                {/* ナビゲーションメニュー */}
+                <nav className="flex flex-col space-y-2 pt-6">
                   {navigationItems.map((item) => {
                     const Icon = item.icon;
+                    const isActive = isActiveRoute(item.href);
                     return (
                       <Link
                         key={item.href}
                         href={item.href}
                         onClick={() => setIsMobileMenuOpen(false)}
-                        className={`flex items-center space-x-3 rounded-md px-3 py-2 text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground ${
-                          isActiveRoute(item.href)
-                            ? 'bg-accent text-accent-foreground'
-                            : 'text-foreground/60'
+                        className={`flex items-center space-x-4 rounded-lg px-4 py-3 text-base font-medium transition-all duration-200 ${
+                          isActive
+                            ? 'bg-blue-50 text-blue-700 border-r-4 border-blue-600 shadow-sm'
+                            : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
                         }`}
                       >
-                        <Icon className="h-4 w-4" />
-                        <span>{item.label}</span>
+                        <Icon
+                          className={`h-6 w-6 ${
+                            isActive ? 'text-blue-600' : 'text-gray-400'
+                          }`}
+                        />
+                        <span className="flex-1">{item.label}</span>
+                        {isActive && (
+                          <div className="w-2 h-2 bg-blue-600 rounded-full"></div>
+                        )}
                       </Link>
                     );
                   })}
                 </nav>
+
+                {/* モバイルメニューフッター */}
+                <div className="absolute bottom-6 left-4 right-4">
+                  <div className="text-xs text-gray-500 text-center border-t pt-4">
+                    <p>© 2025 Driver Logbook v3</p>
+                    <p>運転手業務効率化システム</p>
+                  </div>
+                </div>
               </SheetContent>
             </Sheet>
           </div>
