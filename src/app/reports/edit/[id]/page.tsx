@@ -49,7 +49,7 @@ export default function EditDailyReportPage() {
         setLoading(true);
         setError(null);
 
-        const fetchedReport = await getDailyReportById(reportId, user.id);
+        const fetchedReport = await getDailyReportById(reportId);
 
         if (!fetchedReport) {
           setError('指定された日報が見つかりません');

@@ -95,7 +95,12 @@ export function DailyReportForm() {
 
     try {
       // Supabaseに日報を保存
-      const savedReport = await upsertDailyReport(data, user.id);
+      const savedReport = await upsertDailyReport({
+        ...data,
+        user_id: user.id,
+        deliveries: data.deliveries || 0,
+        highway_fee: data.highway_fee || 0,
+      });
 
       console.log('保存された日報:', savedReport);
 

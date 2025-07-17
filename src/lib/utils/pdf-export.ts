@@ -272,7 +272,7 @@ function drawTableRow(
     report.end_time || '',
     formatDuration(report.start_time, report.end_time),
     report.distance_km?.toString() || '',
-    report.route || '',
+    report.notes || '',
   ];
 
   rowData.forEach((data, index) => {
@@ -351,7 +351,7 @@ export async function generateMonthlyReportPDF(
     );
 
     // 日報データを描画
-    sortedReports.forEach((report, index) => {
+    sortedReports.forEach((report) => {
       // ページブレイクチェック
       if (yPosition > 250) {
         // ページの最下部近くの場合

@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import Link from 'next/link';
 import { useAuth } from '@/contexts/AuthContext';
 import { MainLayout } from '@/components/layout/MainLayout';
@@ -9,10 +9,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { DeleteConfirmDialog } from '@/components/forms/DeleteConfirmDialog';
-import {
-  getDailyReports,
-  deleteDailyReport,
-} from '@/lib/supabase/queries/daily-reports';
+import { getDailyReports } from '@/lib/supabase/queries/daily-reports';
 import { DailyReport } from '@/types/database';
 import {
   Search,
@@ -59,7 +56,6 @@ export default function ReportsListPage() {
   const [isLoadingData, setIsLoadingData] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
   const [deleteTargetId, setDeleteTargetId] = useState<number | null>(null);
-  const [isDeleting, setIsDeleting] = useState(false);
 
   // フィルター状態
   const [filters, setFilters] = useState<FilterState>({
@@ -69,20 +65,8 @@ export default function ReportsListPage() {
     searchText: '',
   });
 
-  // データ読み込み
-  useEffect(() => {
-    if (user && !loading) {
-      loadReports();
-    }
-  }, [user, loading]);
-
-  // フィルタリング処理
-  useEffect(() => {
-    applyFilters();
-  }, [reports, filters]);
-
   // 日報データの読み込み
-  const loadReports = async () => {
+  const loadReports = useCallback(async () => {
     if (!user) return;
 
     try {
@@ -94,10 +78,10 @@ export default function ReportsListPage() {
     } finally {
       setIsLoadingData(false);
     }
-  };
+  }, [user]);
 
   // フィルタリング適用
-  const applyFilters = () => {
+  const applyFilters = useCallback(() => {
     let filtered = [...reports];
 
     // 日付範囲フィルター
@@ -117,16 +101,26 @@ export default function ReportsListPage() {
     // テキスト検索
     if (filters.searchText) {
       const searchLower = filters.searchText.toLowerCase();
-      filtered = filtered.filter(
-        (report) =>
-          report.route?.toLowerCase().includes(searchLower) ||
-          report.notes?.toLowerCase().includes(searchLower)
+      filtered = filtered.filter((report) =>
+        report.notes?.toLowerCase().includes(searchLower)
       );
     }
 
     setFilteredReports(filtered);
     setCurrentPage(1); // フィルター変更時は1ページ目に戻る
-  };
+  }, [reports, filters]);
+
+  // データ読み込み
+  useEffect(() => {
+    if (user && !loading) {
+      loadReports();
+    }
+  }, [user, loading, loadReports]);
+
+  // フィルタリング処理
+  useEffect(() => {
+    applyFilters();
+  }, [reports, filters, applyFilters]);
 
   // フィルターリセット
   const resetFilters = () => {
@@ -136,20 +130,6 @@ export default function ReportsListPage() {
       workStatus: 'all',
       searchText: '',
     });
-  };
-
-  // 削除処理
-  const handleDelete = async (id: number) => {
-    setIsDeleting(true);
-    try {
-      await deleteDailyReport(id);
-      await loadReports(); // データを再読み込み
-      setDeleteTargetId(null);
-    } catch (error) {
-      console.error('削除エラー:', error);
-    } finally {
-      setIsDeleting(false);
-    }
   };
 
   // ページネーション計算
@@ -406,13 +386,6 @@ export default function ReportsListPage() {
                               )}
                             </div>
 
-                            {/* ルート */}
-                            {report.route && (
-                              <div className="text-gray-700">
-                                <strong>ルート:</strong> {report.route}
-                              </div>
-                            )}
-
                             {/* 備考 */}
                             {report.notes && (
                               <div className="text-gray-700">
@@ -494,11 +467,22 @@ export default function ReportsListPage() {
 
         {/* 削除確認ダイアログ */}
         <DeleteConfirmDialog
-          isOpen={deleteTargetId !== null}
-          onClose={() => setDeleteTargetId(null)}
-          onConfirm={() => deleteTargetId && handleDelete(deleteTargetId)}
-          isLoading={isDeleting}
-          itemName="日報"
+          open={deleteTargetId !== null}
+          onOpenChange={(open) => !open && setDeleteTargetId(null)}
+          report={
+            deleteTargetId
+              ? filteredReports.find((r) => r.id === deleteTargetId) || null
+              : null
+          }
+          onDeleteSuccess={(reportId) => {
+            setFilteredReports((prev) =>
+              prev.filter((report) => report.id !== reportId)
+            );
+            setDeleteTargetId(null);
+          }}
+          onDeleteError={(error) => {
+            console.error('削除エラー:', error);
+          }}
         />
       </div>
     </MainLayout>

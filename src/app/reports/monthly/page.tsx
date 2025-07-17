@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { MainLayout } from '@/components/layout/MainLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -15,7 +15,6 @@ import {
   Truck,
   DollarSign,
   Activity,
-  Download,
   TrendingUp,
   Clock,
   FileDown,
@@ -25,13 +24,11 @@ import { format, startOfMonth, endOfMonth } from 'date-fns';
 import { ja } from 'date-fns/locale';
 import {
   downloadMonthlyCSV,
-  getAvailableFormats,
   type CSVExportFormat,
 } from '@/lib/utils/csv-export';
 import {
   generateMonthlyReportPDF,
   calculateMonthlyStats,
-  type MonthlyStats as PDFMonthlyStats,
 } from '@/lib/utils/pdf-export';
 
 // 月次統計の型定義
@@ -111,15 +108,8 @@ export default function MonthlyReportsPage() {
     }
   };
 
-  // データ読み込み
-  useEffect(() => {
-    if (user && !loading) {
-      loadMonthlyData();
-    }
-  }, [user, loading, selectedYear, selectedMonth]);
-
   // 月次データの読み込み
-  const loadMonthlyData = async () => {
+  const loadMonthlyData = useCallback(async () => {
     if (!user) return;
 
     try {
@@ -196,7 +186,14 @@ export default function MonthlyReportsPage() {
     } finally {
       setIsLoadingData(false);
     }
-  };
+  }, [user, selectedYear, selectedMonth]);
+
+  // データ読み込み
+  useEffect(() => {
+    if (user && !loading) {
+      loadMonthlyData();
+    }
+  }, [user, loading, selectedYear, selectedMonth, loadMonthlyData]);
 
   // 年月選択オプションの生成
   const currentYear = new Date().getFullYear();

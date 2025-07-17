@@ -1,10 +1,11 @@
 'use client';
 import { useEffect, useState } from 'react';
 import { supabase } from '@/lib/supabase/client';
+import { DailyReport, User } from '@/types/database';
 
 export default function TestPage() {
-  const [users, setUsers] = useState<any[]>([]);
-  const [reports, setReports] = useState<any[]>([]);
+  const [users, setUsers] = useState<User[]>([]);
+  const [reports, setReports] = useState<DailyReport[]>([]);
 
   useEffect(() => {
     async function fetchData() {

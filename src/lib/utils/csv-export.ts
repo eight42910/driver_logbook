@@ -1,5 +1,5 @@
 import Papa from 'papaparse';
-import { format } from 'date-fns';
+import { format as formatDate } from 'date-fns';
 import { ja } from 'date-fns/locale';
 import type { DailyReport } from '@/types/database';
 
@@ -145,8 +145,8 @@ function formatDetailedRow(report: DailyReport): string[] {
     report.deliveries?.toString() || '',
     report.highway_fee?.toString() || '',
     report.notes || '',
-    format(new Date(report.created_at), 'yyyy-MM-dd HH:mm', { locale: ja }),
-    format(new Date(report.updated_at), 'yyyy-MM-dd HH:mm', { locale: ja }),
+    formatDate(new Date(report.created_at), 'yyyy-MM-dd HH:mm', { locale: ja }),
+    formatDate(new Date(report.updated_at), 'yyyy-MM-dd HH:mm', { locale: ja }),
   ];
 }
 
@@ -155,7 +155,7 @@ function formatDetailedRow(report: DailyReport): string[] {
  */
 function formatAccountingRow(report: DailyReport): string[] {
   return [
-    format(new Date(report.date), 'yyyy/MM/dd'),
+    formatDate(new Date(report.date), 'yyyy/MM/dd'),
     report.is_worked ? '1' : '0',
     report.start_time || '',
     report.end_time || '',
@@ -237,7 +237,7 @@ export function downloadCSV(
     let finalFileName = fileName;
     if (!finalFileName) {
       const now = new Date();
-      const dateStr = format(now, 'yyyy-MM-dd');
+      const dateStr = formatDate(now, 'yyyy-MM-dd');
       const formatSuffix =
         format === 'basic' ? '基本' : format === 'detailed' ? '詳細' : '経理用';
       finalFileName = `日報_${formatSuffix}_${dateStr}.csv`;

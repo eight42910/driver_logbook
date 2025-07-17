@@ -1,16 +1,10 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import Link from 'next/link';
 import { useAuth } from '@/contexts/AuthContext';
 import { MainLayout } from '@/components/layout/MainLayout';
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { getDailyReports } from '@/lib/supabase/queries/daily-reports';
 import { DailyReport } from '@/types/database';
@@ -61,15 +55,8 @@ export default function DashboardPage() {
   });
   const [isLoadingData, setIsLoadingData] = useState(true);
 
-  // データの読み込み
-  useEffect(() => {
-    if (user && !loading) {
-      loadDashboardData();
-    }
-  }, [user, loading]);
-
   // ダッシュボードデータの読み込み
-  const loadDashboardData = async () => {
+  const loadDashboardData = useCallback(async () => {
     if (!user) return;
 
     try {
@@ -128,7 +115,14 @@ export default function DashboardPage() {
     } finally {
       setIsLoadingData(false);
     }
-  };
+  }, [user]);
+
+  // データの読み込み
+  useEffect(() => {
+    if (user && !loading) {
+      loadDashboardData();
+    }
+  }, [user, loading, loadDashboardData]);
 
   // 認証チェック
   if (loading) {
@@ -372,11 +366,8 @@ export default function DashboardPage() {
             クイックアクション
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <Card
-              className="hover:shadow-md transition-shadow cursor-pointer"
-              asChild
-            >
-              <Link href="/reports">
+            <Link href="/reports">
+              <Card className="hover:shadow-md transition-shadow cursor-pointer">
                 <CardContent className="p-6">
                   <div className="flex items-center space-x-4">
                     <div className="p-3 bg-blue-100 rounded-full">
@@ -388,14 +379,11 @@ export default function DashboardPage() {
                     </div>
                   </div>
                 </CardContent>
-              </Link>
-            </Card>
+              </Card>
+            </Link>
 
-            <Card
-              className="hover:shadow-md transition-shadow cursor-pointer"
-              asChild
-            >
-              <Link href="/reports/monthly">
+            <Link href="/reports/monthly">
+              <Card className="hover:shadow-md transition-shadow cursor-pointer">
                 <CardContent className="p-6">
                   <div className="flex items-center space-x-4">
                     <div className="p-3 bg-green-100 rounded-full">
@@ -409,14 +397,11 @@ export default function DashboardPage() {
                     </div>
                   </div>
                 </CardContent>
-              </Link>
-            </Card>
+              </Card>
+            </Link>
 
-            <Card
-              className="hover:shadow-md transition-shadow cursor-pointer"
-              asChild
-            >
-              <Link href="/reports/list">
+            <Link href="/reports/list">
+              <Card className="hover:shadow-md transition-shadow cursor-pointer">
                 <CardContent className="p-6">
                   <div className="flex items-center space-x-4">
                     <div className="p-3 bg-purple-100 rounded-full">
@@ -428,8 +413,8 @@ export default function DashboardPage() {
                     </div>
                   </div>
                 </CardContent>
-              </Link>
-            </Card>
+              </Card>
+            </Link>
           </div>
         </div>
       </div>
