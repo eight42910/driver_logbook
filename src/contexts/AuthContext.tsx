@@ -6,6 +6,7 @@ import React, {
   useEffect,
   useState,
   useCallback,
+  useRef,
 } from 'react';
 import { User } from '@supabase/supabase-js';
 import { supabase } from '@/lib/supabase/client';
@@ -84,17 +85,20 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
   const [profileLoading, setProfileLoading] = useState(false); // プロフィール読み込み専用
+  const loadingRef = useRef(false); // 読み込み状態の参照（循環依存回避用）
 
   // ユーザープロフィールの読み込み
   const loadUserProfile = useCallback(
     async (user: User) => {
-      // 既に読み込み中の場合はスキップ（競合状態防止）
-      if (profileLoading) {
+      // useRefを使用して循環依存を回避
+      if (loadingRef.current) {
         console.log('プロフィール読み込み中のためスキップ:', user.email);
         return;
       }
 
+      loadingRef.current = true;
       setProfileLoading(true);
+
       try {
         // 既存のプロフィールを取得
         const { data: existingProfile, error: fetchError } = await supabase
@@ -138,11 +142,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           });
         }
       } finally {
+        loadingRef.current = false;
         setProfileLoading(false);
         setLoading(false);
       }
     },
-    [profileLoading]
+    [] // 依存配列を空にして循環依存を解決
   );
 
   // 初期認証状態の確認
