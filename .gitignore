@@ -37,3 +37,6 @@ next-env.d.ts
 
 # repomix
 repomix-output.xml
+
+# cursor mcp configuration with credentials
+.cursor/mcp.json

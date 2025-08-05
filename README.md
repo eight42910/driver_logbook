@@ -152,7 +152,45 @@ NEXT_PUBLIC_SUPABASE_URL=your_supabase_project_url
 NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
 ```
 
-### 4. Supabase セットアップ
+### 4. Cursor MCP 設定（オプション）
+
+**Cursor Editor で Supabase との連携を行う場合**:
+
+```bash
+# テンプレートファイルをコピー
+cp .cursor/mcp.json.template .cursor/mcp.json
+```
+
+`.cursor/mcp.json` を編集して、Supabase アクセストークンを設定:
+
+```json
+{
+  "mcpServers": {
+    "supabase": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@supabase/mcp-server-supabase@latest",
+        "--project-ref=ymutrkwvhbfszkiadtac"
+      ],
+      "env": {
+        "SUPABASE_ACCESS_TOKEN": "your_supabase_access_token_here"
+      }
+    }
+  }
+}
+```
+
+> **⚠️ 注意**: `.cursor/mcp.json` は `.gitignore` に含まれており、機密情報を含むためコミットされません。
+
+**Supabase アクセストークンの取得方法**:
+
+1. [Supabase Dashboard](https://supabase.com/dashboard/account/tokens) にアクセス
+2. 「Generate new token」をクリック
+3. 適切な名前を入力（例: "Cursor MCP - Driver Logbook"）
+4. 生成されたトークンを `.cursor/mcp.json` に設定
+
+### 5. Supabase セットアップ
 
 #### データベーステーブル作成:
 
