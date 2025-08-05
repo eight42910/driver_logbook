@@ -118,18 +118,18 @@ export default function RegisterPage() {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-md w-full space-y-8">
+      <div className="max-w-md w-full space-y-6">
         {/* ヘッダー */}
         <div className="text-center">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">
+          <h1 className="text-3xl font-bold text-gray-900 mb-3">
             Driver Logbook v3
           </h1>
           <p className="text-gray-600">ドライバー業務効率化システム</p>
         </div>
 
         {/* 新規登録フォーム */}
-        <Card className="mt-8">
-          <CardHeader className="space-y-1">
+        <Card>
+          <CardHeader className="space-y-1 pb-4">
             <CardTitle className="text-2xl text-center flex items-center justify-center gap-2">
               <UserPlus className="h-6 w-6" />
               新規登録

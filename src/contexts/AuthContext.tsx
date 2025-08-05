@@ -1,6 +1,12 @@
 'use client';
 
-import React, { createContext, useContext, useEffect, useState } from 'react';
+import React, {
+  createContext,
+  useContext,
+  useEffect,
+  useState,
+  useCallback,
+} from 'react';
 import { User } from '@supabase/supabase-js';
 import { supabase } from '@/lib/supabase/client';
 
@@ -77,6 +83,67 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
+  const [profileLoading, setProfileLoading] = useState(false); // プロフィール読み込み専用
+
+  // ユーザープロフィールの読み込み
+  const loadUserProfile = useCallback(
+    async (user: User) => {
+      // 既に読み込み中の場合はスキップ（競合状態防止）
+      if (profileLoading) {
+        console.log('プロフィール読み込み中のためスキップ:', user.email);
+        return;
+      }
+
+      setProfileLoading(true);
+      try {
+        // 既存のプロフィールを取得
+        const { data: existingProfile, error: fetchError } = await supabase
+          .from('users')
+          .select('*')
+          .eq('id', user.id)
+          .single();
+
+        if (fetchError && fetchError.code !== 'PGRST116') {
+          // PGRST116: レコードが見つからない以外のエラー
+          throw fetchError;
+        }
+
+        if (existingProfile) {
+          console.log('既存プロフィール読み込み成功:', existingProfile.email);
+          setProfile(existingProfile);
+        } else {
+          // プロフィールが存在しない場合は自動作成
+          console.log('プロフィール自動作成開始:', user.email);
+          const newProfile = await createUserProfile(user);
+          console.log('プロフィール作成成功:', newProfile.email);
+          setProfile(newProfile);
+        }
+      } catch (error) {
+        console.error('プロフィール読み込みエラー:', error);
+
+        // エラーが発生した場合は自動作成を試行
+        try {
+          console.log('プロフィール作成リトライ:', user.email);
+          const newProfile = await createUserProfile(user);
+          setProfile(newProfile);
+        } catch (createError) {
+          console.error('プロフィール作成エラー:', createError);
+          // 最終的にエラーの場合は基本情報のみ設定
+          setProfile({
+            id: user.id,
+            email: user.email!,
+            display_name: user.email?.split('@')[0] || 'ユーザー',
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString(),
+          });
+        }
+      } finally {
+        setProfileLoading(false);
+        setLoading(false);
+      }
+    },
+    [profileLoading]
+  );
 
   // 初期認証状態の確認
   useEffect(() => {
@@ -96,67 +163,50 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     } = supabase.auth.onAuthStateChange(async (event, session) => {
       console.log('Auth state changed:', event, session?.user?.email);
 
-      if (session?.user) {
-        setUser(session.user);
-        await loadUserProfile(session.user);
-      } else {
-        setUser(null);
-        setProfile(null);
+      try {
+        if (session?.user) {
+          setUser(session.user);
+          await loadUserProfile(session.user);
+        } else {
+          console.log('ログアウト: セッション終了');
+          setUser(null);
+          setProfile(null);
+          setLoading(false);
+        }
+      } catch (error) {
+        console.error('認証状態変更エラー:', error);
         setLoading(false);
       }
     });
 
     return () => subscription.unsubscribe();
-  }, []);
-
-  // ユーザープロフィールの読み込み
-  async function loadUserProfile(user: User) {
-    try {
-      // 既存のプロフィールを取得
-      const { data: existingProfile } = await supabase
-        .from('users')
-        .select('*')
-        .eq('id', user.id)
-        .single();
-
-      if (existingProfile) {
-        setProfile(existingProfile);
-      } else {
-        // プロフィールが存在しない場合は自動作成
-        const newProfile = await createUserProfile(user);
-        setProfile(newProfile);
-      }
-    } catch (error) {
-      console.error('プロフィール読み込みエラー:', error);
-
-      // エラーが発生した場合は自動作成を試行
-      try {
-        const newProfile = await createUserProfile(user);
-        setProfile(newProfile);
-      } catch (createError) {
-        console.error('プロフィール作成エラー:', createError);
-      }
-    } finally {
-      setLoading(false);
-    }
-  }
+  }, [loadUserProfile]);
 
   // ログイン機能
   const signIn = async (email: string, password: string) => {
     setLoading(true);
     try {
-      const { error } = await supabase.auth.signInWithPassword({
+      const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password,
       });
 
       if (error) throw error;
 
-      // 認証成功後はonAuthStateChangeで処理される
+      // 認証成功の確認
+      if (data.user) {
+        console.log('ログイン成功:', data.user.email);
+        // onAuthStateChangeで自動的にユーザー状態が更新される
+        return;
+      } else {
+        throw new Error('認証データが不正です');
+      }
     } catch (error) {
       setLoading(false);
+      console.error('ログインエラー詳細:', error);
       throw error;
     }
+    // setLoading(false)は意図的に省略 - onAuthStateChangeで処理
   };
 
   // 新規登録機能
