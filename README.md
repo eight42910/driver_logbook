@@ -410,7 +410,7 @@ npm run dev
 
 ### 🎨 UI/UX
 
-- **モダンデザイン**: shadcn/ui による洗練されたインターフェース
+- **モダンデザイン**: shadcn/ui を使用しています。
 - **レスポンシブ**: モバイル・タブレット・デスクトップ最適化
 - **アクセシビリティ**:
   - スクリーンリーダー対応
@@ -462,7 +462,7 @@ npm run lint:fix
 
 ## 🚀 デプロイメント
 
-### Vercel デプロイ (推奨)
+### Vercel デプロイ
 
 #### 自動デプロイ:
 
@@ -473,21 +473,6 @@ npm run lint:fix
    NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
    NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
    ```
-4. 自動デプロイ実行
-
-#### 手動デプロイ:
-
-```bash
-npm install -g vercel
-vercel --prod
-```
-
-### その他デプロイ先
-
-- **Netlify**: 静的サイト生成対応
-- **AWS Amplify**: フルスタックホスティング
-- **Docker**: コンテナ化デプロイ
-- **VPS**: 独自サーバー
 
 ---
 
@@ -529,16 +514,6 @@ https://your-project.supabase.co/rest/v1/
 
 ---
 
-## 🤝 コントリビューション
-
-### 開発への参加
-
-1. **Fork** このリポジトリ
-2. **Feature branch** 作成 (`git checkout -b feature/AmazingFeature`)
-3. **Commit** 変更 (`git commit -m 'Add some AmazingFeature'`)
-4. **Push** ブランチ (`git push origin feature/AmazingFeature`)
-5. **Pull Request** 作成
-
 ### コーディング規約
 
 - TypeScript strict mode
@@ -547,15 +522,7 @@ https://your-project.supabase.co/rest/v1/
 - 1 ファイル 1 コンポーネント
 - 明確な型定義・コメント
 
----
-
-## 📜 ライセンス
-
-MIT License - 詳細は [LICENSE](LICENSE) ファイルを参照
-
----
-
-## 🙏 謝辞
+## 謝辞
 
 ### 使用ライブラリ・サービス
 
@@ -567,22 +534,16 @@ MIT License - 詳細は [LICENSE](LICENSE) ファイルを参照
 
 ---
 
-## 📞 サポート・連絡先
-
 ### 🐛 バグ報告・機能リクエスト
 
 - **GitHub Issues**: [Issues ページ](https://github.com/eight42910/driver_logbook/issues)
 - **セキュリティ**: セキュリティに関する問題は直接連絡
 
-### 💬 コミュニティ
-
-- **Discussions**: [GitHub Discussions](https://github.com/eight42910/driver_logbook/discussions)
-
 ### 👨‍💻 開発者情報
 
 - **開発者**: eight42910
 - **バージョン**: v3.0.0
-- **最終更新**: 2025 年 1 月 16 日
+- **最終更新**: 2025 年 8 月 5 日
 - **プロジェクト状況**: ✅ 完成・本番稼働中
 
 ---
@@ -614,9 +575,3 @@ MIT License - 詳細は [LICENSE](LICENSE) ファイルを参照
 - **技術理解力**: 生成されたコードの背景を理解し改善
 - **学習能力**: 新技術を AI 支援で迅速にキャッチアップ
 - **品質意識**: AI 生成物の評価・改善・最適化を実践
-
----
-
-**Driver Logbook v3 - フルスタック委託ドライバー業務効率化アプリ**
-
-[🚀 今すぐ試す](https://driverlogbook-seven.vercel.app) | [📚 詳細ドキュメント](./docs/project-completion-report.md) | [🛠️ 開発参加](https://github.com/eight42910/driver_logbook/issues)
