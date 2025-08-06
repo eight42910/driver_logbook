@@ -57,31 +57,40 @@ export default function HomePage() {
 
   return (
     <AuthLayout>
-      <div className="mx-auto max-w-4xl text-center space-y-8">
+      <div className="mx-auto max-w-4xl text-center space-y-8 px-4 sm:px-6 lg:px-8">
         {/* ヒーローセクション */}
-        <div className="space-y-4">
+        <div className="space-y-6">
           <div className="inline-flex items-center space-x-2 rounded-full border px-4 py-2 text-sm">
             <Truck className="h-4 w-4 text-blue-600" />
             <span>委託ドライバー向け業務管理アプリ</span>
           </div>
 
-          <h1 className="text-4xl font-bold tracking-tight sm:text-5xl md:text-6xl">
+          <h1 className="text-3xl font-bold tracking-tight sm:text-4xl md:text-5xl lg:text-6xl">
             Driver Logbook
           </h1>
 
-          <p className="mx-auto max-w-2xl text-lg text-muted-foreground">
+          <p className="mx-auto max-w-2xl text-base sm:text-lg text-muted-foreground px-4">
             日報・メンテナンス・経費を一元管理。
-            <br />
+            <br className="hidden sm:inline" />
             委託ドライバーの業務効率化を支援します。
           </p>
         </div>
 
         {/* CTAボタン */}
-        <div className="flex flex-col sm:flex-row gap-4 justify-center">
-          <Button asChild size="lg" className="text-lg">
+        <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center px-4 py-2">
+          <Button
+            asChild
+            size="lg"
+            className="text-base sm:text-lg w-full sm:w-auto"
+          >
             <Link href="/login">ログイン</Link>
           </Button>
-          <Button asChild variant="outline" size="lg" className="text-lg">
+          <Button
+            asChild
+            variant="outline"
+            size="lg"
+            className="text-base sm:text-lg w-full sm:w-auto"
+          >
             <Link href="/register">無料で始める</Link>
           </Button>
         </div>
@@ -109,14 +118,14 @@ export default function HomePage() {
         </div>
 
         {/* 今すぐ始める */}
-        <div className="mt-16 p-8 bg-blue-50 dark:bg-blue-950/20 rounded-lg">
-          <h3 className="text-xl font-semibold mb-4">
+        <div className="mt-16 p-6 sm:p-8 bg-blue-50 dark:bg-blue-950/20 rounded-lg mx-4 sm:mx-0">
+          <h3 className="text-lg sm:text-xl font-semibold mb-4">
             業務効率化を今すぐ始めませんか？
           </h3>
-          <p className="text-muted-foreground mb-6">
+          <p className="text-sm sm:text-base text-muted-foreground mb-6">
             無料アカウント作成で、すべての機能をお試しいただけます。
           </p>
-          <Button asChild size="lg">
+          <Button asChild size="lg" className="w-full sm:w-auto">
             <Link href="/register">無料で始める</Link>
           </Button>
         </div>
