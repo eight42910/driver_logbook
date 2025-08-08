@@ -1,6 +1,5 @@
 import { supabase } from '../client';
 import { DailyReport } from '@/types/database';
-import { calculateDistance } from '@/lib/validations/daily-report';
 
 export async function createDailyReport(report: {
   user_id: string;
@@ -105,16 +104,26 @@ export async function upsertDailyReport(report: {
     existingReport = await getDailyReportByDate(report.user_id, report.date);
   }
 
-  const reportData = {
-    ...report,
-    distance_km: calculateDistance(report.start_odometer, report.end_odometer),
+  // DB側で算出・管理される項目（distance_km）は送信しない
+  // 既存の型制約に合わせて、undefinedの数値は0に正規化
+  const baseData = {
+    user_id: report.user_id,
+    date: report.date,
+    is_worked: report.is_worked,
+    start_time: report.start_time,
+    end_time: report.end_time,
+    start_odometer: report.start_odometer,
+    end_odometer: report.end_odometer,
+    deliveries: report.deliveries ?? 0,
+    highway_fee: report.highway_fee ?? 0,
+    notes: report.notes,
   };
 
   if (existingReport) {
     // 更新
     const { data, error } = await supabase
       .from('daily_reports')
-      .update(reportData)
+      .update(baseData)
       .eq('id', existingReport.id)
       .select()
       .single();
@@ -123,8 +132,7 @@ export async function upsertDailyReport(report: {
     return data;
   } else {
     // 新規作成
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const { id: _id, ...insertData } = reportData;
+    const insertData = baseData;
     const { data, error } = await supabase
       .from('daily_reports')
       .insert(insertData)
