@@ -1,7 +1,11 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import { networkOptimizer, type NetworkStatus, type OptimizationConfig } from '@/lib/utils/network-optimization';
+import {
+  networkOptimizer,
+  type NetworkStatus,
+  type OptimizationConfig,
+} from '@/lib/utils/network-optimization';
 
 /**
  * ネットワーク最適化機能を提供するカスタムフック
@@ -49,33 +53,36 @@ export function useNetworkOptimization() {
 export function useResponsiveImage() {
   const { networkStatus } = useNetworkOptimization();
 
-  const getOptimalImageProps = useCallback((
-    src: string,
-    alt: string,
-    width?: number,
-    height?: number
-  ) => {
-    const quality = getImageQualityForNetwork(networkStatus.connectionQuality);
-    const loading = networkStatus.isLowData ? 'lazy' : 'eager';
-    
-    return {
-      src,
-      alt,
-      width,
-      height,
-      loading: loading as 'eager' | 'lazy',
-      quality,
-      placeholder: networkStatus.isLowData ? 'blur' : undefined,
-      priority: !networkStatus.isLowData,
-    };
-  }, [networkStatus]);
+  const getOptimalImageProps = useCallback(
+    (src: string, alt: string, width?: number, height?: number) => {
+      const quality = getImageQualityForNetwork(
+        networkStatus.connectionQuality
+      );
+      const loading = networkStatus.isLowData ? 'lazy' : 'eager';
 
-  const getResponsiveSizes = useCallback((breakpoints: Record<string, number>) => {
-    const entries = Object.entries(breakpoints);
-    return entries
-      .map(([size, width]) => `(max-width: ${size}) ${width}px`)
-      .join(', ');
-  }, []);
+      return {
+        src,
+        alt,
+        width,
+        height,
+        loading: loading as 'eager' | 'lazy',
+        quality,
+        placeholder: networkStatus.isLowData ? 'blur' : undefined,
+        priority: !networkStatus.isLowData,
+      };
+    },
+    [networkStatus]
+  );
+
+  const getResponsiveSizes = useCallback(
+    (breakpoints: Record<string, number>) => {
+      const entries = Object.entries(breakpoints);
+      return entries
+        .map(([size, width]) => `(max-width: ${size}) ${width}px`)
+        .join(', ');
+    },
+    []
+  );
 
   return {
     getOptimalImageProps,
@@ -91,22 +98,25 @@ export function useResponsiveImage() {
 export function useAdaptiveLoading() {
   const { networkStatus, isLightModeActive } = useNetworkOptimization();
 
-  const shouldLoadResource = useCallback((priority: 'high' | 'medium' | 'low') => {
-    if (!navigator.onLine) return false;
+  const shouldLoadResource = useCallback(
+    (priority: 'high' | 'medium' | 'low') => {
+      if (!navigator.onLine) return false;
 
-    switch (networkStatus.connectionQuality) {
-      case 'excellent':
-        return true;
-      case 'good':
-        return priority !== 'low';
-      case 'fair':
-        return priority === 'high';
-      case 'poor':
-        return priority === 'high' && !networkStatus.saveData;
-      default:
-        return false;
-    }
-  }, [networkStatus]);
+      switch (networkStatus.connectionQuality) {
+        case 'excellent':
+          return true;
+        case 'good':
+          return priority !== 'low';
+        case 'fair':
+          return priority === 'high';
+        case 'poor':
+          return priority === 'high' && !networkStatus.saveData;
+        default:
+          return false;
+      }
+    },
+    [networkStatus]
+  );
 
   const getLoadingStrategy = useCallback(() => {
     if (isLightModeActive) {
@@ -125,22 +135,25 @@ export function useAdaptiveLoading() {
     }
   }, [networkStatus, isLightModeActive]);
 
-  const shouldPreload = useCallback((resourceType: 'image' | 'script' | 'style' | 'font') => {
-    if (networkStatus.saveData) return false;
+  const shouldPreload = useCallback(
+    (resourceType: 'image' | 'script' | 'style' | 'font') => {
+      if (networkStatus.saveData) return false;
 
-    const strategy = getLoadingStrategy();
-    
-    switch (strategy) {
-      case 'aggressive':
-        return true;
-      case 'balanced':
-        return resourceType === 'font' || resourceType === 'style';
-      case 'conservative':
-        return resourceType === 'font';
-      default:
-        return false;
-    }
-  }, [networkStatus, getLoadingStrategy]);
+      const strategy = getLoadingStrategy();
+
+      switch (strategy) {
+        case 'aggressive':
+          return true;
+        case 'balanced':
+          return resourceType === 'font' || resourceType === 'style';
+        case 'conservative':
+          return resourceType === 'font';
+        default:
+          return false;
+      }
+    },
+    [networkStatus, getLoadingStrategy]
+  );
 
   return {
     shouldLoadResource,
@@ -162,7 +175,7 @@ export function useDataUsageMonitor() {
   });
 
   const recordDataUsage = useCallback((resourceUrl: string, bytes: number) => {
-    setDataUsage(prev => ({
+    setDataUsage((prev) => ({
       ...prev,
       totalBytes: prev.totalBytes + bytes,
     }));
@@ -172,10 +185,10 @@ export function useDataUsageMonitor() {
       const stored = localStorage.getItem('dataUsageStats');
       const stats = stored ? JSON.parse(stored) : { daily: {}, total: 0 };
       const today = new Date().toISOString().split('T')[0];
-      
+
       stats.daily[today] = (stats.daily[today] || 0) + bytes;
       stats.total += bytes;
-      
+
       localStorage.setItem('dataUsageStats', JSON.stringify(stats));
     } catch (error) {
       console.warn('Failed to store data usage stats:', error);
@@ -183,7 +196,7 @@ export function useDataUsageMonitor() {
   }, []);
 
   const recordSavedData = useCallback((savedBytes: number) => {
-    setDataUsage(prev => ({
+    setDataUsage((prev) => ({
       ...prev,
       savedBytes: prev.savedBytes + savedBytes,
     }));
@@ -193,7 +206,7 @@ export function useDataUsageMonitor() {
     try {
       const stored = localStorage.getItem('dataUsageStats');
       if (!stored) return {};
-      
+
       const stats = JSON.parse(stored);
       return stats.daily || {};
     } catch (error) {
@@ -205,11 +218,11 @@ export function useDataUsageMonitor() {
   const getTotalSavings = useCallback(() => {
     const optimizationStats = networkOptimizer.getOptimizationStats();
     let totalSaved = 0;
-    
-    optimizationStats.forEach(stat => {
+
+    optimizationStats.forEach((stat) => {
       totalSaved += stat.savedBytes;
     });
-    
+
     return totalSaved;
   }, []);
 
@@ -227,13 +240,15 @@ export function useDataUsageMonitor() {
  */
 export function useOfflineSupport() {
   const [isOnline, setIsOnline] = useState(navigator.onLine);
-  const [offlineQueue, setOfflineQueue] = useState<Array<{
-    id: string;
-    method: string;
-    url: string;
-    data: any;
-    timestamp: number;
-  }>>([]);
+  const [offlineQueue, setOfflineQueue] = useState<
+    Array<{
+      id: string;
+      method: string;
+      url: string;
+      data: any;
+      timestamp: number;
+    }>
+  >([]);
 
   useEffect(() => {
     const handleOnline = () => {
@@ -254,27 +269,30 @@ export function useOfflineSupport() {
     };
   }, []);
 
-  const addToOfflineQueue = useCallback((method: string, url: string, data: any) => {
-    const item = {
-      id: `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
-      method,
-      url,
-      data,
-      timestamp: Date.now(),
-    };
+  const addToOfflineQueue = useCallback(
+    (method: string, url: string, data: any) => {
+      const item = {
+        id: `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+        method,
+        url,
+        data,
+        timestamp: Date.now(),
+      };
 
-    setOfflineQueue(prev => [...prev, item]);
-    
-    // ローカルストレージにも保存
-    try {
-      const stored = localStorage.getItem('offlineQueue');
-      const queue = stored ? JSON.parse(stored) : [];
-      queue.push(item);
-      localStorage.setItem('offlineQueue', JSON.stringify(queue));
-    } catch (error) {
-      console.warn('Failed to store offline queue item:', error);
-    }
-  }, []);
+      setOfflineQueue((prev) => [...prev, item]);
+
+      // ローカルストレージにも保存
+      try {
+        const stored = localStorage.getItem('offlineQueue');
+        const queue = stored ? JSON.parse(stored) : [];
+        queue.push(item);
+        localStorage.setItem('offlineQueue', JSON.stringify(queue));
+      } catch (error) {
+        console.warn('Failed to store offline queue item:', error);
+      }
+    },
+    []
+  );
 
   const processOfflineQueue = useCallback(async () => {
     try {
@@ -297,15 +315,19 @@ export function useOfflineSupport() {
           processedItems.push(item.id);
           console.log(`Processed offline queue item: ${item.id}`);
         } catch (error) {
-          console.warn(`Failed to process offline queue item ${item.id}:`, error);
+          console.warn(
+            `Failed to process offline queue item ${item.id}:`,
+            error
+          );
         }
       }
 
       // 処理済みアイテムを削除
-      const remainingQueue = queue.filter((item: any) => !processedItems.includes(item.id));
+      const remainingQueue = queue.filter(
+        (item: any) => !processedItems.includes(item.id)
+      );
       localStorage.setItem('offlineQueue', JSON.stringify(remainingQueue));
       setOfflineQueue(remainingQueue);
-
     } catch (error) {
       console.warn('Failed to process offline queue:', error);
     }
@@ -344,56 +366,67 @@ export function usePerformanceBudget() {
     totalSize: 0,
   });
 
-  const checkBudget = useCallback((resourceType: string, size: number, loadTime?: number) => {
-    const newUsage = { ...currentUsage };
-    
-    switch (resourceType) {
-      case 'image':
-        newUsage.imageSize += size;
-        break;
-      case 'script':
-        newUsage.scriptSize += size;
-        break;
-      default:
-        newUsage.totalSize += size;
-    }
+  const checkBudget = useCallback(
+    (resourceType: string, size: number, loadTime?: number) => {
+      const newUsage = { ...currentUsage };
 
-    if (loadTime) {
-      newUsage.loadTime = Math.max(newUsage.loadTime, loadTime);
-    }
+      switch (resourceType) {
+        case 'image':
+          newUsage.imageSize += size;
+          break;
+        case 'script':
+          newUsage.scriptSize += size;
+          break;
+        default:
+          newUsage.totalSize += size;
+      }
 
-    setCurrentUsage(newUsage);
+      if (loadTime) {
+        newUsage.loadTime = Math.max(newUsage.loadTime, loadTime);
+      }
 
-    // 予算超過の警告
-    const warnings: string[] = [];
-    
-    if (newUsage.loadTime > budget.maxLoadTime) {
-      warnings.push(`Load time budget exceeded: ${newUsage.loadTime}ms > ${budget.maxLoadTime}ms`);
-    }
-    
-    if (newUsage.imageSize > budget.maxImageSize) {
-      warnings.push(`Image size budget exceeded: ${newUsage.imageSize} > ${budget.maxImageSize} bytes`);
-    }
+      setCurrentUsage(newUsage);
 
-    if (newUsage.scriptSize > budget.maxScriptSize) {
-      warnings.push(`Script size budget exceeded: ${newUsage.scriptSize} > ${budget.maxScriptSize} bytes`);
-    }
+      // 予算超過の警告
+      const warnings: string[] = [];
 
-    if (newUsage.totalSize > budget.maxTotalSize) {
-      warnings.push(`Total size budget exceeded: ${newUsage.totalSize} > ${budget.maxTotalSize} bytes`);
-    }
+      if (newUsage.loadTime > budget.maxLoadTime) {
+        warnings.push(
+          `Load time budget exceeded: ${newUsage.loadTime}ms > ${budget.maxLoadTime}ms`
+        );
+      }
 
-    if (warnings.length > 0) {
-      console.warn('Performance budget warnings:', warnings);
-    }
+      if (newUsage.imageSize > budget.maxImageSize) {
+        warnings.push(
+          `Image size budget exceeded: ${newUsage.imageSize} > ${budget.maxImageSize} bytes`
+        );
+      }
 
-    return {
-      isWithinBudget: warnings.length === 0,
-      warnings,
-      usage: newUsage,
-      budget,
-    };
-  }, [budget, currentUsage]);
+      if (newUsage.scriptSize > budget.maxScriptSize) {
+        warnings.push(
+          `Script size budget exceeded: ${newUsage.scriptSize} > ${budget.maxScriptSize} bytes`
+        );
+      }
+
+      if (newUsage.totalSize > budget.maxTotalSize) {
+        warnings.push(
+          `Total size budget exceeded: ${newUsage.totalSize} > ${budget.maxTotalSize} bytes`
+        );
+      }
+
+      if (warnings.length > 0) {
+        console.warn('Performance budget warnings:', warnings);
+      }
+
+      return {
+        isWithinBudget: warnings.length === 0,
+        warnings,
+        usage: newUsage,
+        budget,
+      };
+    },
+    [budget, currentUsage]
+  );
 
   const getBudgetStatus = useCallback(() => {
     return {
@@ -429,7 +462,9 @@ export function usePerformanceBudget() {
 }
 
 // ヘルパー関数
-function getImageQualityForNetwork(quality: NetworkStatus['connectionQuality']): number {
+function getImageQualityForNetwork(
+  quality: NetworkStatus['connectionQuality']
+): number {
   switch (quality) {
     case 'excellent':
       return 90;

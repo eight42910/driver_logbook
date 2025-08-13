@@ -6,7 +6,11 @@ import { Sidebar } from './Sidebar';
 import { Footer } from './Footer';
 import { LayoutProvider, useLayout } from '@/contexts/LayoutContext';
 import { MobileLayoutTransition } from '@/components/mobile/MobileLayoutTransition';
-import { useSmartPreload, usePageLeaveTracking, useNetworkAwarePreload } from '@/hooks/useSmartPreload';
+import {
+  useSmartPreload,
+  usePageLeaveTracking,
+  useNetworkAwarePreload,
+} from '@/hooks/useSmartPreload';
 import { useMobileGestures, useViewportFix } from '@/hooks/useMobileGestures';
 import { useNetworkOptimization } from '@/hooks/useNetworkOptimization';
 
@@ -20,32 +24,32 @@ interface MainLayoutProps {
  */
 function MainLayoutInner({ children }: MainLayoutProps) {
   const { sidebarOpen, isDesktop, isMobile } = useLayout();
-  
+
   // スマートプリロード機能の初期化
   const { preloadRoute } = useSmartPreload();
   const { preloadCriticalResources } = useNetworkAwarePreload();
-  
+
   // ページ離脱追跡
   usePageLeaveTracking();
-  
+
   // モバイルジェスチャー機能の初期化
   const { onSwipe, setSwipeEnabled } = useMobileGestures({
     enableSwipeNavigation: isMobile,
     enablePinchPrevention: true,
     enablePullToRefresh: false,
   });
-  
+
   // ビューポート修正（100vh問題解決）
   useViewportFix();
-  
+
   // ネットワーク最適化機能の初期化
   const { networkStatus, isLightModeActive } = useNetworkOptimization();
-  
+
   // 重要なリソースのプリロード実行
   React.useEffect(() => {
     preloadCriticalResources();
   }, [preloadCriticalResources]);
-  
+
   // モバイル専用のスワイプナビゲーション設定
   React.useEffect(() => {
     if (isMobile) {
@@ -54,7 +58,7 @@ function MainLayoutInner({ children }: MainLayoutProps) {
         console.log('Right swipe detected - going back');
         // 戻るナビゲーションは自動的に処理される
       });
-      
+
       onSwipe('left', () => {
         console.log('Left swipe detected');
         // 左スワイプで次のページ（必要に応じて実装）

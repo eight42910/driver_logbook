@@ -7,12 +7,14 @@ import { MobileGestureHandler } from '@/lib/utils/mobile-gesture-handler';
 /**
  * モバイルジェスチャー機能を提供するカスタムフック
  */
-export function useMobileGestures(options: {
-  enableSwipeNavigation?: boolean;
-  enablePinchPrevention?: boolean;
-  enablePullToRefresh?: boolean;
-  target?: React.RefObject<HTMLElement>;
-} = {}) {
+export function useMobileGestures(
+  options: {
+    enableSwipeNavigation?: boolean;
+    enablePinchPrevention?: boolean;
+    enablePullToRefresh?: boolean;
+    target?: React.RefObject<HTMLElement>;
+  } = {}
+) {
   const router = useRouter();
   const gestureHandlerRef = useRef<MobileGestureHandler | null>(null);
   const targetRef = useRef<HTMLElement | null>(null);
@@ -27,7 +29,7 @@ export function useMobileGestures(options: {
   // ジェスチャーハンドラーの初期化
   useEffect(() => {
     const targetElement = target?.current || document.body;
-    
+
     if (!targetElement) return;
 
     targetRef.current = targetElement;
@@ -55,17 +57,29 @@ export function useMobileGestures(options: {
     return () => {
       gestureHandlerRef.current?.destroy();
     };
-  }, [enableSwipeNavigation, enablePinchPrevention, enablePullToRefresh, target, router]);
+  }, [
+    enableSwipeNavigation,
+    enablePinchPrevention,
+    enablePullToRefresh,
+    target,
+    router,
+  ]);
 
   // カスタムスワイプハンドラーの登録
-  const onSwipe = useCallback((direction: 'left' | 'right' | 'up' | 'down', handler: () => void) => {
-    gestureHandlerRef.current?.onSwipe(direction, handler);
-  }, []);
+  const onSwipe = useCallback(
+    (direction: 'left' | 'right' | 'up' | 'down', handler: () => void) => {
+      gestureHandlerRef.current?.onSwipe(direction, handler);
+    },
+    []
+  );
 
   // カスタムジェスチャーハンドラーの登録
-  const onGesture = useCallback((type: 'tap' | 'longPress' | 'pinch', handler: () => void) => {
-    gestureHandlerRef.current?.onGesture(type, handler);
-  }, []);
+  const onGesture = useCallback(
+    (type: 'tap' | 'longPress' | 'pinch', handler: () => void) => {
+      gestureHandlerRef.current?.onGesture(type, handler);
+    },
+    []
+  );
 
   // スワイプ機能の動的切り替え
   const setSwipeEnabled = useCallback((enabled: boolean) => {
@@ -140,9 +154,12 @@ export function useViewportFix() {
       // 実際のビューポート高さを取得
       const vh = window.innerHeight * 0.01;
       document.documentElement.style.setProperty('--vh', `${vh}px`);
-      
+
       // より正確な高さ
-      document.documentElement.style.setProperty('--actual-vh', `${window.innerHeight}px`);
+      document.documentElement.style.setProperty(
+        '--actual-vh',
+        `${window.innerHeight}px`
+      );
     };
 
     // 初期設定
@@ -165,7 +182,9 @@ export function useViewportFix() {
 /**
  * スクロール可能エリアのジェスチャー制御
  */
-export function useScrollGestureControl(scrollRef: React.RefObject<HTMLElement>) {
+export function useScrollGestureControl(
+  scrollRef: React.RefObject<HTMLElement>
+) {
   const { setSwipeEnabled } = useMobileGestures();
 
   useEffect(() => {
@@ -309,8 +328,12 @@ export function usePinchPrevention(elementRef: React.RefObject<HTMLElement>) {
     };
 
     element.addEventListener('touchmove', preventPinch, { passive: false });
-    element.addEventListener('gesturestart', preventGesture, { passive: false });
-    element.addEventListener('gesturechange', preventGesture, { passive: false });
+    element.addEventListener('gesturestart', preventGesture, {
+      passive: false,
+    });
+    element.addEventListener('gesturechange', preventGesture, {
+      passive: false,
+    });
     element.addEventListener('gestureend', preventGesture, { passive: false });
 
     return () => {
