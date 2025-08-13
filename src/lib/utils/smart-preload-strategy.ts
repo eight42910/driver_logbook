@@ -74,10 +74,12 @@ export class SmartPreloadStrategy {
 
     this.navigationHistory.push(record);
     this.updatePatterns(record);
-    
+
     // 履歴サイズを制限
     if (this.navigationHistory.length > this.maxHistorySize) {
-      this.navigationHistory = this.navigationHistory.slice(-this.maxHistorySize);
+      this.navigationHistory = this.navigationHistory.slice(
+        -this.maxHistorySize
+      );
     }
 
     this.persistData();
@@ -89,7 +91,7 @@ export class SmartPreloadStrategy {
   preloadForCurrentPage(currentPath: string): void {
     const predictions = this.predictNextPages(currentPath);
     const networkConditions = this.getNetworkConditions();
-    
+
     // ネットワーク条件に基づいてプリロード戦略を調整
     const shouldPreload = this.shouldPreloadBasedOnNetwork(networkConditions);
     if (!shouldPreload) {
@@ -97,7 +99,7 @@ export class SmartPreloadStrategy {
       return;
     }
 
-    predictions.forEach(prediction => {
+    predictions.forEach((prediction) => {
       if (prediction.confidence >= this.minConfidenceThreshold) {
         this.preloadRoute(prediction.toPath, prediction.confidence);
       }
@@ -141,9 +143,11 @@ export class SmartPreloadStrategy {
         document.head.appendChild(link);
 
         this.preloadedResources.add(path);
-        
-        console.log(`Preloaded route: ${path} (confidence: ${confidence.toFixed(2)})`);
-        
+
+        console.log(
+          `Preloaded route: ${path} (confidence: ${confidence.toFixed(2)})`
+        );
+
         // 10分後にリンクを削除
         setTimeout(() => {
           if (link.parentNode) {
@@ -160,10 +164,13 @@ export class SmartPreloadStrategy {
   /**
    * 関連リソースのプリロード
    */
-  private preloadRelatedResources(currentPath: string, networkConditions: NetworkConditions): void {
+  private preloadRelatedResources(
+    currentPath: string,
+    networkConditions: NetworkConditions
+  ): void {
     const resources = this.getRelatedResources(currentPath);
-    
-    resources.forEach(resource => {
+
+    resources.forEach((resource) => {
       if (this.shouldPreloadResource(resource, networkConditions)) {
         this.preloadResource(resource);
       }
@@ -180,7 +187,7 @@ export class SmartPreloadStrategy {
 
     try {
       const link = document.createElement('link');
-      
+
       switch (resource.type) {
         case 'image':
           link.rel = 'preload';
@@ -202,11 +209,11 @@ export class SmartPreloadStrategy {
         default:
           link.rel = 'prefetch';
       }
-      
+
       link.href = resource.url;
       document.head.appendChild(link);
       this.preloadedResources.add(resource.url);
-      
+
       console.log(`Preloaded ${resource.type}: ${resource.url}`);
     } catch (error) {
       console.warn(`Failed to preload resource ${resource.url}:`, error);
@@ -218,7 +225,7 @@ export class SmartPreloadStrategy {
    */
   private predictNextPages(currentPath: string): NavigationPattern[] {
     const relevantPatterns = Array.from(this.patterns.values())
-      .filter(pattern => pattern.fromPath === currentPath)
+      .filter((pattern) => pattern.fromPath === currentPath)
       .sort((a, b) => b.confidence - a.confidence);
 
     return relevantPatterns.slice(0, 3); // 上位3つの予測
@@ -234,7 +241,8 @@ export class SmartPreloadStrategy {
     if (existing) {
       // 既存パターンの更新
       existing.frequency += 1;
-      existing.averageDuration = (existing.averageDuration + record.duration) / 2;
+      existing.averageDuration =
+        (existing.averageDuration + record.duration) / 2;
       existing.lastSeen = record.timestamp;
       existing.confidence = this.calculateConfidence(existing);
     } else {
@@ -258,9 +266,11 @@ export class SmartPreloadStrategy {
   private calculateConfidence(pattern: NavigationPattern): number {
     const timeFactor = this.calculateTimeFactor(pattern.lastSeen);
     const frequencyFactor = Math.min(pattern.frequency / 10, 1); // 10回で最大
-    const durationFactor = this.calculateDurationFactor(pattern.averageDuration);
-    
-    return (frequencyFactor * 0.5) + (timeFactor * 0.3) + (durationFactor * 0.2);
+    const durationFactor = this.calculateDurationFactor(
+      pattern.averageDuration
+    );
+
+    return frequencyFactor * 0.5 + timeFactor * 0.3 + durationFactor * 0.2;
   }
 
   /**
@@ -268,7 +278,7 @@ export class SmartPreloadStrategy {
    */
   private calculateTimeFactor(lastSeen: number): number {
     const daysSinceLastSeen = (Date.now() - lastSeen) / (1000 * 60 * 60 * 24);
-    return Math.max(0, 1 - (daysSinceLastSeen / 30)); // 30日で0に
+    return Math.max(0, 1 - daysSinceLastSeen / 30); // 30日で0に
   }
 
   /**
@@ -297,8 +307,11 @@ export class SmartPreloadStrategy {
       return defaultConditions;
     }
 
-    const connection = (navigator as any).connection || (navigator as any).mozConnection || (navigator as any).webkitConnection;
-    
+    const connection =
+      (navigator as any).connection ||
+      (navigator as any).mozConnection ||
+      (navigator as any).webkitConnection;
+
     if (connection) {
       return {
         effectiveType: connection.effectiveType || '4g',
@@ -321,7 +334,10 @@ export class SmartPreloadStrategy {
     }
 
     // 低速ネットワークの場合は制限的
-    if (conditions.effectiveType === 'slow-2g' || conditions.effectiveType === '2g') {
+    if (
+      conditions.effectiveType === 'slow-2g' ||
+      conditions.effectiveType === '2g'
+    ) {
       return false;
     }
 
@@ -338,7 +354,10 @@ export class SmartPreloadStrategy {
   /**
    * リソースプリロード判定
    */
-  private shouldPreloadResource(resource: PreloadResource, conditions: NetworkConditions): boolean {
+  private shouldPreloadResource(
+    resource: PreloadResource,
+    conditions: NetworkConditions
+  ): boolean {
     // ファイルサイズ制限
     const maxSize = this.getMaxResourceSize(conditions);
     if (resource.size && resource.size > maxSize) {
@@ -346,7 +365,8 @@ export class SmartPreloadStrategy {
     }
 
     // 最近使用されたリソースを優先
-    const daysSinceUsed = (Date.now() - resource.lastUsed) / (1000 * 60 * 60 * 24);
+    const daysSinceUsed =
+      (Date.now() - resource.lastUsed) / (1000 * 60 * 60 * 24);
     if (daysSinceUsed > 7) {
       return false;
     }
@@ -414,7 +434,9 @@ export class SmartPreloadStrategy {
         break;
     }
 
-    return resources.filter(resource => !this.preloadedResources.has(resource.url));
+    return resources.filter(
+      (resource) => !this.preloadedResources.has(resource.url)
+    );
   }
 
   /**
@@ -422,7 +444,7 @@ export class SmartPreloadStrategy {
    */
   private detectDeviceType(): 'mobile' | 'tablet' | 'desktop' {
     if (typeof window === 'undefined') return 'desktop';
-    
+
     const width = window.innerWidth;
     if (width < 768) return 'mobile';
     if (width < 1024) return 'tablet';
@@ -434,8 +456,11 @@ export class SmartPreloadStrategy {
    */
   private getNetworkType(): string {
     if (typeof navigator === 'undefined') return 'unknown';
-    
-    const connection = (navigator as any).connection || (navigator as any).mozConnection || (navigator as any).webkitConnection;
+
+    const connection =
+      (navigator as any).connection ||
+      (navigator as any).mozConnection ||
+      (navigator as any).webkitConnection;
     return connection?.effectiveType || 'unknown';
   }
 
@@ -451,7 +476,7 @@ export class SmartPreloadStrategy {
       { from: '/reports/list', to: '/reports/edit', confidence: 0.5 },
     ];
 
-    defaultPatterns.forEach(pattern => {
+    defaultPatterns.forEach((pattern) => {
       const patternKey = `${pattern.from}→${pattern.to}`;
       if (!this.patterns.has(patternKey)) {
         this.patterns.set(patternKey, {
@@ -472,7 +497,7 @@ export class SmartPreloadStrategy {
   private persistData(): void {
     try {
       if (typeof localStorage === 'undefined') return;
-      
+
       const data = {
         patterns: Array.from(this.patterns.entries()),
         navigationHistory: this.navigationHistory.slice(-100), // 最新100件のみ保存
@@ -490,11 +515,11 @@ export class SmartPreloadStrategy {
   private loadPersistedData(): void {
     try {
       if (typeof localStorage === 'undefined') return;
-      
+
       const data = localStorage.getItem(this.storageKey);
       if (data) {
         const parsed = JSON.parse(data);
-        
+
         // データの有効性チェック（7日以内）
         if (Date.now() - parsed.timestamp < 7 * 24 * 60 * 60 * 1000) {
           this.patterns = new Map(parsed.patterns);
@@ -520,8 +545,8 @@ export class SmartPreloadStrategy {
    * 古いパターンのクリーンアップ
    */
   private cleanupOldPatterns(): void {
-    const cutoffTime = Date.now() - (30 * 24 * 60 * 60 * 1000); // 30日前
-    
+    const cutoffTime = Date.now() - 30 * 24 * 60 * 60 * 1000; // 30日前
+
     for (const [key, pattern] of this.patterns.entries()) {
       if (pattern.lastSeen < cutoffTime || pattern.confidence < 0.1) {
         this.patterns.delete(key);
@@ -535,10 +560,12 @@ export class SmartPreloadStrategy {
   private cleanupOldResources(): void {
     // プリロードされたリソースの参照をクリア
     this.preloadedResources.clear();
-    
+
     // 古いリンクタグを削除
-    const preloadLinks = document.querySelectorAll('link[rel="prefetch"], link[rel="preload"]');
-    preloadLinks.forEach(link => {
+    const preloadLinks = document.querySelectorAll(
+      'link[rel="prefetch"], link[rel="preload"]'
+    );
+    preloadLinks.forEach((link) => {
       const href = link.getAttribute('href');
       if (href && !this.isRecentlyUsed(href)) {
         link.remove();
@@ -550,10 +577,11 @@ export class SmartPreloadStrategy {
    * 最近使用されたかチェック
    */
   private isRecentlyUsed(url: string): boolean {
-    const recentThreshold = Date.now() - (10 * 60 * 1000); // 10分以内
-    return this.navigationHistory.some(record => 
-      record.timestamp > recentThreshold && 
-      (record.fromPath.includes(url) || record.toPath.includes(url))
+    const recentThreshold = Date.now() - 10 * 60 * 1000; // 10分以内
+    return this.navigationHistory.some(
+      (record) =>
+        record.timestamp > recentThreshold &&
+        (record.fromPath.includes(url) || record.toPath.includes(url))
     );
   }
 
@@ -565,8 +593,11 @@ export class SmartPreloadStrategy {
       totalPatterns: this.patterns.size,
       totalHistory: this.navigationHistory.length,
       preloadedResources: this.preloadedResources.size,
-      averageConfidence: Array.from(this.patterns.values())
-        .reduce((sum, pattern) => sum + pattern.confidence, 0) / this.patterns.size,
+      averageConfidence:
+        Array.from(this.patterns.values()).reduce(
+          (sum, pattern) => sum + pattern.confidence,
+          0
+        ) / this.patterns.size,
       mostFrequentPatterns: Array.from(this.patterns.values())
         .sort((a, b) => b.frequency - a.frequency)
         .slice(0, 5),

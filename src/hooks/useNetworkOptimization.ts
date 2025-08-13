@@ -15,14 +15,14 @@ export function useNetworkOptimization() {
     networkOptimizer.getNetworkStatus()
   );
   const [isLightModeActive, setIsLightModeActive] = useState(
-    networkOptimizer.getLightModeStatus()
+    networkOptimizer.isLightModeActive()
   );
 
   useEffect(() => {
     // ネットワーク状態変化の監視
     networkOptimizer.onNetworkChange((status) => {
       setNetworkStatus(status);
-      setIsLightModeActive(networkOptimizer.getLightModeStatus());
+      setIsLightModeActive(networkOptimizer.isLightModeActive());
     });
   }, []);
 
