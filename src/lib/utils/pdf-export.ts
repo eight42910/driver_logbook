@@ -2,6 +2,11 @@ import jsPDF from 'jspdf';
 import { format } from 'date-fns';
 import { ja } from 'date-fns/locale';
 import type { DailyReport } from '@/types/database';
+import {
+  setupJapaneseFont,
+  drawJapaneseText,
+  checkPDFEnvironment,
+} from './pdf-fonts';
 
 /**
  * 月次統計データの型定義
@@ -124,84 +129,6 @@ export function calculateMonthlyStats(reports: DailyReport[]): MonthlyStats {
     averageDistance,
     averageWorkHours,
   };
-}
-
-/**
- * PDFに日本語フォントを設定
- * ブラウザ環境での日本語文字化け対策
- */
-function setupJapaneseFont(doc: jsPDF): void {
-  try {
-    // jsPDFでサポートされている日本語対応可能な設定
-    // ヒラギノ角ゴシック系フォントを試行
-    doc.setFont('times', 'normal');
-
-    // 日本語文字のテスト描画で確認
-    const testText = 'テスト';
-    const textWidth = doc.getTextWidth(testText);
-
-    // 文字幅が正常に取得できない場合は代替フォント
-    if (textWidth === 0 || isNaN(textWidth)) {
-      doc.setFont('courier', 'normal');
-    }
-  } catch (error) {
-    console.warn('日本語フォント設定エラー:', error);
-    // フォールバック: デフォルトフォント
-    doc.setFont('helvetica', 'normal');
-  }
-}
-
-/**
- * 日本語テキストを安全に描画
- * 文字化け対策とフォールバック処理
- */
-function drawJapaneseText(
-  doc: jsPDF,
-  text: string,
-  x: number,
-  y: number,
-  options?: {
-    fontSize?: number;
-    maxWidth?: number;
-    align?: 'left' | 'center' | 'right';
-  }
-): void {
-  const { fontSize = 10, maxWidth, align = 'left' } = options || {};
-
-  try {
-    doc.setFontSize(fontSize);
-
-    // 長いテキストの場合は改行処理
-    if (maxWidth && doc.getTextWidth(text) > maxWidth) {
-      const lines = doc.splitTextToSize(text, maxWidth);
-      let currentY = y;
-
-      lines.forEach((line: string) => {
-        let drawX = x;
-        if (align === 'center') {
-          drawX = x - doc.getTextWidth(line) / 2;
-        } else if (align === 'right') {
-          drawX = x - doc.getTextWidth(line);
-        }
-
-        doc.text(line, drawX, currentY);
-        currentY += fontSize * 0.4; // 行間調整
-      });
-    } else {
-      let drawX = x;
-      if (align === 'center') {
-        drawX = x - doc.getTextWidth(text) / 2;
-      } else if (align === 'right') {
-        drawX = x - doc.getTextWidth(text);
-      }
-
-      doc.text(text, drawX, y);
-    }
-  } catch (error) {
-    console.warn('日本語テキスト描画エラー:', error);
-    // フォールバック: 基本的な描画
-    doc.text(text || '', x, y);
-  }
 }
 
 /**
@@ -404,6 +331,12 @@ export async function generateMonthlyReportPDF(
   userName: string
 ): Promise<void> {
   try {
+    // PDF生成環境チェック
+    const environment = checkPDFEnvironment();
+    if (!environment.isSupported) {
+      throw new Error('PDF生成がサポートされていない環境です');
+    }
+
     // PDFドキュメントを作成
     const doc = new jsPDF({
       unit: PDF_CONFIG.unit,
@@ -411,8 +344,8 @@ export async function generateMonthlyReportPDF(
       orientation: PDF_CONFIG.orientation,
     });
 
-    // 日本語フォント設定
-    setupJapaneseFont(doc);
+    // 日本語フォント設定（非同期）
+    await setupJapaneseFont(doc);
 
     // ヘッダー描画
     let yPosition = drawHeader(doc, '運転手業務月次レポート', period, userName);

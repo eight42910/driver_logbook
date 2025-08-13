@@ -16,7 +16,6 @@ const BASIC_HEADERS = [
   '稼働',
   '開始時刻',
   '終了時刻',
-  'ルート',
   '距離(km)',
   '配送件数',
   '高速代',
@@ -314,7 +313,7 @@ export function getAvailableFormats(): Array<{
     {
       value: 'basic',
       label: '基本形式',
-      description: '日付、稼働状況、時間、ルート、距離、備考',
+      description: '日付、稼働状況、時間、距離、配送件数、高速代、備考',
     },
     {
       value: 'detailed',
