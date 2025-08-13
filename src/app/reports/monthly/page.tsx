@@ -29,7 +29,7 @@ import {
 import {
   generateMonthlyReportPDF,
   calculateMonthlyStats,
-} from '@/lib/utils/pdf-export';
+} from '@/lib/utils/pdf-generator-html2canvas';
 
 // 月次統計の型定義
 interface MonthlyStats {

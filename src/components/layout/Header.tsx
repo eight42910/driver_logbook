@@ -15,6 +15,7 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { useAuth } from '@/contexts/AuthContext';
+import { useSidebar, useResponsive } from '@/contexts/LayoutContext';
 import {
   LayoutDashboard,
   FileText,
@@ -24,6 +25,8 @@ import {
   Menu,
   Truck,
   User,
+  PanelLeftClose,
+  PanelLeftOpen,
 } from 'lucide-react';
 
 // ナビゲーションアイテムの定義
@@ -66,6 +69,10 @@ export function Header() {
   const pathname = usePathname();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
+  // レイアウト関連のフック
+  const { isOpen: sidebarOpen, toggle: toggleSidebar } = useSidebar();
+  const { isDesktop } = useResponsive();
+
   // ログアウト処理
   const handleSignOut = async () => {
     try {
@@ -94,6 +101,23 @@ export function Header() {
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="container flex h-16 items-center">
+        {/* サイドバートグルボタン（デスクトップ） */}
+        {isDesktop && (
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={toggleSidebar}
+            className="mr-4 p-2"
+            title={sidebarOpen ? 'サイドバーを閉じる' : 'サイドバーを開く'}
+          >
+            {sidebarOpen ? (
+              <PanelLeftClose className="h-5 w-5" />
+            ) : (
+              <PanelLeftOpen className="h-5 w-5" />
+            )}
+          </Button>
+        )}
+
         {/* ロゴ・ブランド */}
         <div className="mr-4 flex">
           <Link href="/dashboard" className="mr-6 flex items-center space-x-2">

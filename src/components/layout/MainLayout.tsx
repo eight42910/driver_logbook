@@ -3,9 +3,50 @@
 import { Header } from './Header';
 import { Sidebar } from './Sidebar';
 import { Footer } from './Footer';
+import { LayoutProvider, useLayout } from '@/contexts/LayoutContext';
 
 interface MainLayoutProps {
   children: React.ReactNode;
+}
+
+/**
+ * 内部レイアウトコンポーネント
+ * LayoutContextを使用するため、プロバイダー内で定義
+ */
+function MainLayoutInner({ children }: MainLayoutProps) {
+  const { sidebarOpen, isDesktop, isMobile } = useLayout();
+
+  return (
+    <div className="min-h-screen bg-gray-50">
+      {/* ヘッダー（全画面固定） */}
+      <Header />
+
+      {/* メインコンテンツエリア */}
+      <div className="flex min-h-[calc(100vh-4rem)]">
+        {' '}
+        {/* ヘッダー分を除く */}
+        {/* サイドバー */}
+        <Sidebar />
+        {/* メインコンテンツ */}
+        <main
+          className={`
+            flex-1 flex flex-col
+            transition-all duration-300 ease-in-out
+            ${isDesktop && sidebarOpen ? 'lg:ml-64' : 'ml-0'}
+            ${isMobile ? 'w-full' : ''}
+          `}
+        >
+          {/* コンテンツエリア */}
+          <div className="flex-1 p-4 sm:p-6">
+            <div className="max-w-7xl mx-auto">{children}</div>
+          </div>
+
+          {/* フッター（メインコンテンツエリア内） */}
+          <Footer />
+        </main>
+      </div>
+    </div>
+  );
 }
 
 /**
@@ -14,19 +55,9 @@ interface MainLayoutProps {
  */
 export function MainLayout({ children }: MainLayoutProps) {
   return (
-    <div className="min-h-screen flex flex-col">
-      <Header />
-
-      <div className="flex-1 flex">
-        <Sidebar />
-
-        <main className="flex-1 p-6 bg-gray-50 lg:ml-64">
-          <div className="max-w-7xl mx-auto">{children}</div>
-        </main>
-      </div>
-
-      <Footer />
-    </div>
+    <LayoutProvider>
+      <MainLayoutInner>{children}</MainLayoutInner>
+    </LayoutProvider>
   );
 }
 
