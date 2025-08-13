@@ -138,8 +138,10 @@ export class NetworkOptimizer {
    */
   private initializeNetworkMonitoring(): void {
     // オンライン/オフライン状態の監視
-    window.addEventListener('online', this.handleNetworkChange.bind(this));
-    window.addEventListener('offline', this.handleNetworkChange.bind(this));
+    if (typeof window !== 'undefined') {
+      window.addEventListener('online', this.handleNetworkChange.bind(this));
+      window.addEventListener('offline', this.handleNetworkChange.bind(this));
+    }
 
     // ネットワーク状態変化の監視
     const connection = (navigator as any).connection;
@@ -247,6 +249,7 @@ export class NetworkOptimizer {
    */
   private activateLightMode(): void {
     if (this.isLightModeActive) return;
+    if (typeof document === 'undefined') return;
 
     this.isLightModeActive = true;
     document.documentElement.setAttribute('data-light-mode', 'true');
@@ -268,6 +271,7 @@ export class NetworkOptimizer {
    */
   private deactivateLightMode(): void {
     if (!this.isLightModeActive) return;
+    if (typeof document === 'undefined') return;
 
     this.isLightModeActive = false;
     document.documentElement.removeAttribute('data-light-mode');
@@ -283,6 +287,8 @@ export class NetworkOptimizer {
    * アニメーションの無効化
    */
   private disableAnimations(): void {
+    if (typeof document === 'undefined') return;
+    
     const style = document.createElement('style');
     style.id = 'light-mode-animations';
     style.textContent = `
@@ -300,6 +306,8 @@ export class NetworkOptimizer {
    * アニメーションの有効化
    */
   private enableAnimations(): void {
+    if (typeof document === 'undefined') return;
+    
     const style = document.getElementById('light-mode-animations');
     if (style) {
       style.remove();
@@ -310,6 +318,8 @@ export class NetworkOptimizer {
    * 積極的な遅延読み込みの有効化
    */
   private enableAggressiveLazyLoading(): void {
+    if (typeof document === 'undefined') return;
+    
     const images = document.querySelectorAll('img[loading="eager"]');
     images.forEach(img => {
       img.setAttribute('loading', 'lazy');
@@ -320,6 +330,8 @@ export class NetworkOptimizer {
    * 積極的な遅延読み込みの無効化
    */
   private disableAggressiveLazyLoading(): void {
+    if (typeof document === 'undefined') return;
+    
     const images = document.querySelectorAll('img[data-priority="true"]');
     images.forEach(img => {
       img.setAttribute('loading', 'eager');
@@ -379,6 +391,8 @@ export class NetworkOptimizer {
    * 画像形式のサポートチェック
    */
   private supportsFormat(format: string): boolean {
+    if (typeof document === 'undefined') return false;
+    
     const canvas = document.createElement('canvas');
     canvas.width = 1;
     canvas.height = 1;
@@ -389,6 +403,8 @@ export class NetworkOptimizer {
    * 既存画像の最適化
    */
   private optimizeExistingImages(quality: number, format: string): void {
+    if (typeof document === 'undefined') return;
+    
     const images = document.querySelectorAll('img[data-optimizable="true"]');
     
     images.forEach((img: Element) => {
@@ -407,6 +423,9 @@ export class NetworkOptimizer {
    */
   private generateOptimizedImageUrl(originalSrc: string, quality: number, format: string): string {
     // Next.js Image Optimization APIを使用
+    if (typeof window === 'undefined') {
+      return originalSrc; // SSR時は元のURLを返す
+    }
     const url = new URL('/_next/image', window.location.origin);
     url.searchParams.set('url', originalSrc);
     url.searchParams.set('q', quality.toString());
@@ -445,6 +464,8 @@ export class NetworkOptimizer {
    * リソースプリロードの調整
    */
   private adjustResourcePreloading(strategy: OptimizationConfig['preloadStrategy']): void {
+    if (typeof document === 'undefined') return;
+    
     const preloadLinks = document.querySelectorAll('link[rel="preload"], link[rel="prefetch"]');
     
     preloadLinks.forEach(link => {
@@ -558,7 +579,7 @@ export class NetworkOptimizer {
   /**
    * 軽量モードの状態を取得
    */
-  public isLightModeActive(): boolean {
+  public getLightModeStatus(): boolean {
     return this.isLightModeActive;
   }
 
@@ -581,8 +602,10 @@ export class NetworkOptimizer {
    * リソースのクリーンアップ
    */
   public destroy(): void {
-    window.removeEventListener('online', this.handleNetworkChange.bind(this));
-    window.removeEventListener('offline', this.handleNetworkChange.bind(this));
+    if (typeof window !== 'undefined') {
+      window.removeEventListener('online', this.handleNetworkChange.bind(this));
+      window.removeEventListener('offline', this.handleNetworkChange.bind(this));
+    }
     
     const connection = (navigator as any).connection;
     if (connection) {

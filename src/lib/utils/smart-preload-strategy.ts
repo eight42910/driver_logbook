@@ -74,7 +74,6 @@ export class SmartPreloadStrategy {
 
     this.navigationHistory.push(record);
     this.updatePatterns(record);
-    this.triggerIntelligentPreload(toPath);
     
     // 履歴サイズを制限
     if (this.navigationHistory.length > this.maxHistorySize) {
@@ -472,6 +471,8 @@ export class SmartPreloadStrategy {
    */
   private persistData(): void {
     try {
+      if (typeof localStorage === 'undefined') return;
+      
       const data = {
         patterns: Array.from(this.patterns.entries()),
         navigationHistory: this.navigationHistory.slice(-100), // 最新100件のみ保存
@@ -488,6 +489,8 @@ export class SmartPreloadStrategy {
    */
   private loadPersistedData(): void {
     try {
+      if (typeof localStorage === 'undefined') return;
+      
       const data = localStorage.getItem(this.storageKey);
       if (data) {
         const parsed = JSON.parse(data);

@@ -26,14 +26,13 @@ function MainLayoutInner({ children }: MainLayoutProps) {
   const { sidebarOpen, isDesktop, isMobile } = useLayout();
 
   // スマートプリロード機能の初期化
-  const { preloadRoute } = useSmartPreload();
   const { preloadCriticalResources } = useNetworkAwarePreload();
 
   // ページ離脱追跡
   usePageLeaveTracking();
 
   // モバイルジェスチャー機能の初期化
-  const { onSwipe, setSwipeEnabled } = useMobileGestures({
+  const { onSwipe } = useMobileGestures({
     enableSwipeNavigation: isMobile,
     enablePinchPrevention: true,
     enablePullToRefresh: false,
@@ -43,7 +42,7 @@ function MainLayoutInner({ children }: MainLayoutProps) {
   useViewportFix();
 
   // ネットワーク最適化機能の初期化
-  const { networkStatus, isLightModeActive } = useNetworkOptimization();
+  useNetworkOptimization();
 
   // 重要なリソースのプリロード実行
   React.useEffect(() => {
