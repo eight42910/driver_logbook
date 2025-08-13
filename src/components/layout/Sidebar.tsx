@@ -83,9 +83,10 @@ export function Sidebar() {
     isMobile,
   } = useSidebar();
   const { isDesktop } = useResponsive();
-  
+
   // インタラクションベースのプリロード
-  const { handleLinkHover, handleLinkTouchStart, handleLinkFocus } = useInteractionPreload();
+  const { handleLinkHover, handleLinkTouchStart, handleLinkFocus } =
+    useInteractionPreload();
 
   // アクティブなルートの判定
   const isActiveRoute = (href: string) => {
@@ -129,12 +130,9 @@ export function Sidebar() {
               href="/dashboard"
               className="flex items-center space-x-2"
               onClick={handleLinkClick}
-<<<<<<< HEAD
               onMouseEnter={() => handleLinkHover('/dashboard')}
               onTouchStart={() => handleLinkTouchStart('/dashboard')}
               onFocus={() => handleLinkFocus('/dashboard')}
-=======
->>>>>>> origin/main
             >
               <Truck className="h-8 w-8 text-blue-600" />
               <div className="flex flex-col">
@@ -181,13 +179,12 @@ export function Sidebar() {
                         <Link
                           key={subItem.href}
                           href={subItem.href}
-<<<<<<< HEAD
                           onClick={handleLinkClick}
                           onMouseEnter={() => handleLinkHover(subItem.href)}
-                          onTouchStart={() => handleLinkTouchStart(subItem.href)}
+                          onTouchStart={() =>
+                            handleLinkTouchStart(subItem.href)
+                          }
                           onFocus={() => handleLinkFocus(subItem.href)}
-=======
->>>>>>> origin/main
                           className={cn(
                             'group flex items-center px-3 py-2 text-sm font-medium rounded-md transition-colors',
                             isActiveRoute(subItem.href)
@@ -222,12 +219,9 @@ export function Sidebar() {
                   key={item.href}
                   href={item.href!}
                   onClick={handleLinkClick}
-<<<<<<< HEAD
                   onMouseEnter={() => handleLinkHover(item.href!)}
                   onTouchStart={() => handleLinkTouchStart(item.href!)}
                   onFocus={() => handleLinkFocus(item.href!)}
-=======
->>>>>>> origin/main
                   className={cn(
                     'group flex items-center px-3 py-2 text-sm font-medium rounded-md transition-colors',
                     isActiveRoute(item.href!)

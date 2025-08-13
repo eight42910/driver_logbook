@@ -88,9 +88,10 @@ export class NetworkOptimizer {
       return defaultStatus;
     }
 
-    const connection = (navigator as any).connection || 
-                      (navigator as any).mozConnection || 
-                      (navigator as any).webkitConnection;
+    const connection =
+      (navigator as any).connection ||
+      (navigator as any).mozConnection ||
+      (navigator as any).webkitConnection;
 
     if (!connection) {
       return {
@@ -105,7 +106,10 @@ export class NetworkOptimizer {
       rtt: connection.rtt || 100,
       saveData: connection.saveData || false,
       isOnline: navigator.onLine,
-      isLowData: connection.saveData || connection.effectiveType === 'slow-2g' || connection.effectiveType === '2g',
+      isLowData:
+        connection.saveData ||
+        connection.effectiveType === 'slow-2g' ||
+        connection.effectiveType === '2g',
       connectionQuality: this.calculateConnectionQuality(connection),
     };
 
@@ -115,7 +119,9 @@ export class NetworkOptimizer {
   /**
    * 接続品質の計算
    */
-  private calculateConnectionQuality(connection: any): NetworkStatus['connectionQuality'] {
+  private calculateConnectionQuality(
+    connection: any
+  ): NetworkStatus['connectionQuality'] {
     if (!navigator.onLine) return 'offline';
 
     const effectiveType = connection.effectiveType;
@@ -138,13 +144,18 @@ export class NetworkOptimizer {
    */
   private initializeNetworkMonitoring(): void {
     // オンライン/オフライン状態の監視
-    window.addEventListener('online', this.handleNetworkChange.bind(this));
-    window.addEventListener('offline', this.handleNetworkChange.bind(this));
+    if (typeof window !== 'undefined') {
+      window.addEventListener('online', this.handleNetworkChange.bind(this));
+      window.addEventListener('offline', this.handleNetworkChange.bind(this));
+    }
 
     // ネットワーク状態変化の監視
     const connection = (navigator as any).connection;
     if (connection) {
-      connection.addEventListener('change', this.handleNetworkChange.bind(this));
+      connection.addEventListener(
+        'change',
+        this.handleNetworkChange.bind(this)
+      );
     }
 
     // 定期的なネットワーク品質チェック
@@ -171,7 +182,10 @@ export class NetworkOptimizer {
   /**
    * 重要な変化があったかチェック
    */
-  private hasSignificantChange(prev: NetworkStatus, current: NetworkStatus): boolean {
+  private hasSignificantChange(
+    prev: NetworkStatus,
+    current: NetworkStatus
+  ): boolean {
     return (
       prev.effectiveType !== current.effectiveType ||
       prev.isOnline !== current.isOnline ||
@@ -188,9 +202,9 @@ export class NetworkOptimizer {
 
     try {
       const startTime = performance.now();
-      const response = await fetch('/api/ping', { 
+      const response = await fetch('/api/ping', {
         method: 'HEAD',
-        cache: 'no-cache' 
+        cache: 'no-cache',
       });
       const endTime = performance.now();
       const rtt = endTime - startTime;
@@ -247,6 +261,7 @@ export class NetworkOptimizer {
    */
   private activateLightMode(): void {
     if (this.isLightModeActive) return;
+    if (typeof document === 'undefined') return;
 
     this.isLightModeActive = true;
     document.documentElement.setAttribute('data-light-mode', 'true');
@@ -268,6 +283,7 @@ export class NetworkOptimizer {
    */
   private deactivateLightMode(): void {
     if (!this.isLightModeActive) return;
+    if (typeof document === 'undefined') return;
 
     this.isLightModeActive = false;
     document.documentElement.removeAttribute('data-light-mode');
@@ -283,6 +299,8 @@ export class NetworkOptimizer {
    * アニメーションの無効化
    */
   private disableAnimations(): void {
+    if (typeof document === 'undefined') return;
+
     const style = document.createElement('style');
     style.id = 'light-mode-animations';
     style.textContent = `
@@ -300,6 +318,8 @@ export class NetworkOptimizer {
    * アニメーションの有効化
    */
   private enableAnimations(): void {
+    if (typeof document === 'undefined') return;
+
     const style = document.getElementById('light-mode-animations');
     if (style) {
       style.remove();
@@ -310,8 +330,10 @@ export class NetworkOptimizer {
    * 積極的な遅延読み込みの有効化
    */
   private enableAggressiveLazyLoading(): void {
+    if (typeof document === 'undefined') return;
+
     const images = document.querySelectorAll('img[loading="eager"]');
-    images.forEach(img => {
+    images.forEach((img) => {
       img.setAttribute('loading', 'lazy');
     });
   }
@@ -320,8 +342,10 @@ export class NetworkOptimizer {
    * 積極的な遅延読み込みの無効化
    */
   private disableAggressiveLazyLoading(): void {
+    if (typeof document === 'undefined') return;
+
     const images = document.querySelectorAll('img[data-priority="true"]');
-    images.forEach(img => {
+    images.forEach((img) => {
       img.setAttribute('loading', 'eager');
     });
   }
@@ -364,7 +388,7 @@ export class NetworkOptimizer {
     if (this.networkStatus.isLowData) {
       return 'webp'; // 軽量
     }
-    
+
     // ブラウザサポートチェック
     if (this.supportsFormat('avif')) {
       return 'avif';
@@ -379,24 +403,34 @@ export class NetworkOptimizer {
    * 画像形式のサポートチェック
    */
   private supportsFormat(format: string): boolean {
+    if (typeof document === 'undefined') return false;
+
     const canvas = document.createElement('canvas');
     canvas.width = 1;
     canvas.height = 1;
-    return canvas.toDataURL(`image/${format}`).indexOf(`data:image/${format}`) === 0;
+    return (
+      canvas.toDataURL(`image/${format}`).indexOf(`data:image/${format}`) === 0
+    );
   }
 
   /**
    * 既存画像の最適化
    */
   private optimizeExistingImages(quality: number, format: string): void {
+    if (typeof document === 'undefined') return;
+
     const images = document.querySelectorAll('img[data-optimizable="true"]');
-    
+
     images.forEach((img: Element) => {
       const imgElement = img as HTMLImageElement;
       const src = imgElement.src;
-      
+
       if (src && !src.includes('optimized=true')) {
-        const optimizedSrc = this.generateOptimizedImageUrl(src, quality, format);
+        const optimizedSrc = this.generateOptimizedImageUrl(
+          src,
+          quality,
+          format
+        );
         imgElement.src = optimizedSrc;
       }
     });
@@ -405,14 +439,21 @@ export class NetworkOptimizer {
   /**
    * 最適化された画像URLの生成
    */
-  private generateOptimizedImageUrl(originalSrc: string, quality: number, format: string): string {
+  private generateOptimizedImageUrl(
+    originalSrc: string,
+    quality: number,
+    format: string
+  ): string {
     // Next.js Image Optimization APIを使用
+    if (typeof window === 'undefined') {
+      return originalSrc; // SSR時は元のURLを返す
+    }
     const url = new URL('/_next/image', window.location.origin);
     url.searchParams.set('url', originalSrc);
     url.searchParams.set('q', quality.toString());
     url.searchParams.set('w', '800'); // デフォルト幅
     url.searchParams.set('optimized', 'true');
-    
+
     return url.toString();
   }
 
@@ -421,7 +462,7 @@ export class NetworkOptimizer {
    */
   private updatePreloadStrategy(): void {
     const strategy = this.getOptimalPreloadStrategy();
-    
+
     // 戦略に基づいてリソースのプリロードを調整
     this.adjustResourcePreloading(strategy);
   }
@@ -430,7 +471,10 @@ export class NetworkOptimizer {
    * 最適なプリロード戦略を取得
    */
   private getOptimalPreloadStrategy(): OptimizationConfig['preloadStrategy'] {
-    if (this.networkStatus.saveData || this.networkStatus.connectionQuality === 'poor') {
+    if (
+      this.networkStatus.saveData ||
+      this.networkStatus.connectionQuality === 'poor'
+    ) {
       return 'disabled';
     } else if (this.networkStatus.connectionQuality === 'fair') {
       return 'conservative';
@@ -444,12 +488,18 @@ export class NetworkOptimizer {
   /**
    * リソースプリロードの調整
    */
-  private adjustResourcePreloading(strategy: OptimizationConfig['preloadStrategy']): void {
-    const preloadLinks = document.querySelectorAll('link[rel="preload"], link[rel="prefetch"]');
-    
-    preloadLinks.forEach(link => {
+  private adjustResourcePreloading(
+    strategy: OptimizationConfig['preloadStrategy']
+  ): void {
+    if (typeof document === 'undefined') return;
+
+    const preloadLinks = document.querySelectorAll(
+      'link[rel="preload"], link[rel="prefetch"]'
+    );
+
+    preloadLinks.forEach((link) => {
       const linkElement = link as HTMLLinkElement;
-      
+
       switch (strategy) {
         case 'disabled':
           linkElement.remove();
@@ -512,7 +562,12 @@ export class NetworkOptimizer {
   /**
    * 最適化統計の記録
    */
-  public recordOptimization(resourceUrl: string, originalSize: number, optimizedSize: number, loadTime: number): void {
+  public recordOptimization(
+    resourceUrl: string,
+    originalSize: number,
+    optimizedSize: number,
+    loadTime: number
+  ): void {
     const savedBytes = originalSize - optimizedSize;
     const savedPercentage = (savedBytes / originalSize) * 100;
 
@@ -539,7 +594,7 @@ export class NetworkOptimizer {
    * リスナーへの通知
    */
   private notifyListeners(): void {
-    this.listeners.forEach(callback => {
+    this.listeners.forEach((callback) => {
       try {
         callback(this.networkStatus);
       } catch (error) {
@@ -581,12 +636,20 @@ export class NetworkOptimizer {
    * リソースのクリーンアップ
    */
   public destroy(): void {
-    window.removeEventListener('online', this.handleNetworkChange.bind(this));
-    window.removeEventListener('offline', this.handleNetworkChange.bind(this));
-    
+    if (typeof window !== 'undefined') {
+      window.removeEventListener('online', this.handleNetworkChange.bind(this));
+      window.removeEventListener(
+        'offline',
+        this.handleNetworkChange.bind(this)
+      );
+    }
+
     const connection = (navigator as any).connection;
     if (connection) {
-      connection.removeEventListener('change', this.handleNetworkChange.bind(this));
+      connection.removeEventListener(
+        'change',
+        this.handleNetworkChange.bind(this)
+      );
     }
 
     this.listeners = [];
