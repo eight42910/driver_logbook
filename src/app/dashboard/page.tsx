@@ -3,6 +3,10 @@
 import { useEffect, useState, useCallback } from 'react';
 import Link from 'next/link';
 import { useAuth } from '@/contexts/AuthContext';
+import {
+  usePageLoadTracking,
+  usePerformance,
+} from '@/contexts/PerformanceContext';
 import { MainLayout } from '@/components/layout/MainLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -44,6 +48,11 @@ interface MonthlyStats {
  */
 export default function DashboardPage() {
   const { user, profile, loading } = useAuth();
+  const { trackUserAction } = usePerformance();
+
+  // ページ読み込みトラッキング
+  usePageLoadTracking('Dashboard');
+
   const [recentReports, setRecentReports] = useState<DailyReport[]>([]);
   const [monthlyStats, setMonthlyStats] = useState<MonthlyStats>({
     workingDays: 0,
@@ -61,6 +70,7 @@ export default function DashboardPage() {
 
     try {
       setIsLoadingData(true);
+      const startTime = performance.now();
 
       // 全ての日報を取得
       const allReports = await getDailyReports(user.id);
@@ -110,12 +120,23 @@ export default function DashboardPage() {
       }
 
       setMonthlyStats(stats);
+
+      // データ読み込み完了をトラッキング
+      const loadTime = performance.now() - startTime;
+      trackUserAction('dashboard_data_loaded', {
+        reportsCount: allReports.length,
+        monthlyStats: stats,
+        loadTime,
+      });
     } catch (error) {
       console.error('ダッシュボードデータ読み込みエラー:', error);
+      trackUserAction('dashboard_data_error', {
+        error: error instanceof Error ? error.message : String(error),
+      });
     } finally {
       setIsLoadingData(false);
     }
-  }, [user]);
+  }, [user, trackUserAction]);
 
   // データの読み込み
   useEffect(() => {
@@ -164,13 +185,23 @@ export default function DashboardPage() {
           </div>
           <div className="mt-4 sm:mt-0 flex space-x-3">
             <Button asChild>
-              <Link href="/reports">
+              <Link
+                href="/reports"
+                onClick={() =>
+                  trackUserAction('dashboard_create_report_clicked')
+                }
+              >
                 <Plus className="h-4 w-4 mr-2" />
                 新しい日報
               </Link>
             </Button>
             <Button variant="outline" asChild>
-              <Link href="/reports/list">
+              <Link
+                href="/reports/list"
+                onClick={() =>
+                  trackUserAction('dashboard_view_reports_clicked')
+                }
+              >
                 <FileText className="h-4 w-4 mr-2" />
                 日報一覧
               </Link>
@@ -366,7 +397,12 @@ export default function DashboardPage() {
             クイックアクション
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <Link href="/reports">
+            <Link
+              href="/reports"
+              onClick={() =>
+                trackUserAction('dashboard_quick_action_create_report')
+              }
+            >
               <Card className="hover:shadow-md transition-shadow cursor-pointer">
                 <CardContent className="p-6">
                   <div className="flex items-center space-x-4">
@@ -382,7 +418,12 @@ export default function DashboardPage() {
               </Card>
             </Link>
 
-            <Link href="/reports/monthly">
+            <Link
+              href="/reports/monthly"
+              onClick={() =>
+                trackUserAction('dashboard_quick_action_monthly_report')
+              }
+            >
               <Card className="hover:shadow-md transition-shadow cursor-pointer">
                 <CardContent className="p-6">
                   <div className="flex items-center space-x-4">
@@ -400,7 +441,12 @@ export default function DashboardPage() {
               </Card>
             </Link>
 
-            <Link href="/reports/list">
+            <Link
+              href="/reports/list"
+              onClick={() =>
+                trackUserAction('dashboard_quick_action_view_reports')
+              }
+            >
               <Card className="hover:shadow-md transition-shadow cursor-pointer">
                 <CardContent className="p-6">
                   <div className="flex items-center space-x-4">

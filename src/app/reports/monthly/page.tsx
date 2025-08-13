@@ -2,6 +2,10 @@
 
 import { useEffect, useState, useCallback } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
+import {
+  usePageLoadTracking,
+  usePerformance,
+} from '@/contexts/PerformanceContext';
 import { MainLayout } from '@/components/layout/MainLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -22,14 +26,8 @@ import {
 } from 'lucide-react';
 import { format, startOfMonth, endOfMonth } from 'date-fns';
 import { ja } from 'date-fns/locale';
-import {
-  downloadMonthlyCSV,
-  type CSVExportFormat,
-} from '@/lib/utils/csv-export';
-import {
-  generateMonthlyReportPDF,
-  calculateMonthlyStats,
-} from '@/lib/utils/pdf-generator-html2canvas';
+import type { CSVExportFormat } from '@/lib/utils/csv-export';
+import { calculateMonthlyStats } from '@/lib/utils/pdf-generator-html2canvas';
 
 // 月次統計の型定義
 interface MonthlyStats {
@@ -56,6 +54,11 @@ interface MonthlyStats {
  */
 export default function MonthlyReportsPage() {
   const { user, profile, loading } = useAuth();
+  const { trackUserAction } = usePerformance();
+
+  // ページ読み込みトラッキング
+  usePageLoadTracking('Monthly Report');
+
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
   const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth() + 1);
   const [monthlyReports, setMonthlyReports] = useState<DailyReport[]>([]);
@@ -63,15 +66,22 @@ export default function MonthlyReportsPage() {
   const [isLoadingData, setIsLoadingData] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
 
-  // PDFエクスポート関数
+  // PDFエクスポート関数（動的読み込み）
   const handlePDFExport = async () => {
     if (!monthlyReports.length || !profile?.display_name) {
       alert('エクスポートするデータがありません');
       return;
     }
 
+    const startTime = performance.now();
     setIsExporting(true);
+
     try {
+      // PDF生成モジュールを動的に読み込み
+      const { generateMonthlyReportPDF } = await import(
+        '@/lib/utils/pdf-generator-html2canvas'
+      );
+
       // PDF用の統計データを計算
       const pdfStats = calculateMonthlyStats(monthlyReports);
       const period = `${selectedYear}年${selectedMonth}月`;
@@ -82,27 +92,62 @@ export default function MonthlyReportsPage() {
         period,
         profile.display_name || 'ユーザー'
       );
+
+      // 成功トラッキング
+      const loadTime = performance.now() - startTime;
+      trackUserAction('monthly_pdf_export_success', {
+        reportCount: monthlyReports.length,
+        period,
+        loadTime,
+      });
     } catch (error) {
       console.error('PDF export error:', error);
       alert('PDFエクスポートに失敗しました');
+
+      // エラートラッキング
+      trackUserAction('monthly_pdf_export_error', {
+        error: error instanceof Error ? error.message : String(error),
+        period: `${selectedYear}年${selectedMonth}月`,
+      });
     } finally {
       setIsExporting(false);
     }
   };
 
-  // CSVエクスポート関数
-  const handleCSVExport = (format: CSVExportFormat = 'detailed') => {
+  // CSVエクスポート関数（動的読み込み）
+  const handleCSVExport = async (format: CSVExportFormat = 'detailed') => {
     if (!monthlyReports.length) {
       alert('エクスポートするデータがありません');
       return;
     }
 
+    const startTime = performance.now();
     setIsExporting(true);
+
     try {
+      // CSV出力モジュールを動的に読み込み
+      const { downloadMonthlyCSV } = await import('@/lib/utils/csv-export');
+
       downloadMonthlyCSV(monthlyReports, selectedYear, selectedMonth, format);
+
+      // 成功トラッキング
+      const loadTime = performance.now() - startTime;
+      trackUserAction('monthly_csv_export_success', {
+        reportCount: monthlyReports.length,
+        format,
+        period: `${selectedYear}年${selectedMonth}月`,
+        loadTime,
+      });
     } catch (error) {
       console.error('CSV export error:', error);
       alert('CSVエクスポートに失敗しました');
+
+      // エラートラッキング
+      trackUserAction('monthly_csv_export_error', {
+        error: error instanceof Error ? error.message : String(error),
+        format,
+        period: `${selectedYear}年${selectedMonth}月`,
+      });
     } finally {
       setIsExporting(false);
     }

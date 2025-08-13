@@ -76,3 +76,452 @@
     @apply bg-background text-foreground;
   }
 }
+
+/* モバイル最適化とジェスチャー対応 */
+@layer utilities {
+  /* 100vh問題の解決 */
+  .min-h-screen-fix {
+    min-height: 100vh;
+    min-height: calc(var(--vh, 1vh) * 100);
+    min-height: var(--actual-vh, 100vh);
+  }
+  
+  .h-screen-fix {
+    height: 100vh;
+    height: calc(var(--vh, 1vh) * 100);
+    height: var(--actual-vh, 100vh);
+  }
+  
+  /* スクロール可能エリアの高さ調整 */
+  .scroll-container-fix {
+    height: calc(var(--actual-vh, 100vh) - var(--header-height, 4rem) - var(--bottom-nav-height, 5rem));
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* タッチ操作の最適化 */
+  .touch-optimized {
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+  }
+
+  /* ピンチズーム防止 */
+  .no-zoom {
+    touch-action: pan-x pan-y;
+    -ms-touch-action: pan-x pan-y;
+  }
+
+  /* スワイプナビゲーション対応エリア */
+  .swipe-navigation {
+    position: relative;
+    overflow-x: hidden;
+  }
+
+  /* モバイルスクロールの改善 */
+  .smooth-scroll {
+    -webkit-overflow-scrolling: touch;
+    overflow-scrolling: touch;
+    scroll-behavior: smooth;
+  }
+
+  /* タップ時のハイライト除去 */
+  .no-tap-highlight {
+    -webkit-tap-highlight-color: transparent;
+    outline: none;
+  }
+
+  /* フォーカス時のアウトライン改善 */
+  .focus-visible-only:focus {
+    outline: none;
+  }
+  
+  .focus-visible-only:focus-visible {
+    outline: 2px solid #3b82f6;
+    outline-offset: 2px;
+  }
+
+  /* モバイル専用の安全領域対応 */
+  .safe-area-inset {
+    padding-top: env(safe-area-inset-top);
+    padding-right: env(safe-area-inset-right);
+    padding-bottom: env(safe-area-inset-bottom);
+    padding-left: env(safe-area-inset-left);
+  }
+
+  .safe-area-inset-top {
+    padding-top: env(safe-area-inset-top);
+  }
+
+  .safe-area-inset-bottom {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+}
+
+/* ジェスチャーインジケーターのアニメーション */
+@keyframes swipeIndicatorFade {
+  0% { 
+    opacity: 0; 
+    transform: translateY(-50%) scale(0.8); 
+  }
+  50% { 
+    opacity: 1; 
+    transform: translateY(-50%) scale(1); 
+  }
+  100% { 
+    opacity: 0; 
+    transform: translateY(-50%) scale(0.8); 
+  }
+}
+
+@keyframes pullToRefresh {
+  0% { 
+    transform: translateY(-100%); 
+    opacity: 0; 
+  }
+  100% { 
+    transform: translateY(0); 
+    opacity: 1; 
+  }
+}
+
+/* スワイプインジケーターのスタイル */
+.swipe-indicator {
+  position: fixed;
+  top: 50%;
+  transform: translateY(-50%);
+  background: rgba(0, 0, 0, 0.8);
+  color: white;
+  padding: 8px 16px;
+  border-radius: 24px;
+  font-size: 14px;
+  font-weight: 500;
+  z-index: 9999;
+  pointer-events: none;
+  animation: swipeIndicatorFade 0.6s ease-out;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+
+/* プルトゥリフレッシュインジケーター */
+.pull-to-refresh-indicator {
+  position: absolute;
+  top: -60px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 40px;
+  height: 40px;
+  background: #3b82f6;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  animation: pullToRefresh 0.3s ease-out;
+}
+
+/* モバイルフォームの改善 */
+input[type="text"],
+input[type="email"],
+input[type="password"],
+input[type="number"],
+input[type="tel"],
+input[type="date"],
+input[type="time"],
+textarea,
+select {
+  /* iOSでのズーム防止 */
+  font-size: 16px;
+  transform: translateZ(0);
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+}
+
+/* iOS Safari の丸い角の調整 */
+input[type="submit"],
+input[type="button"],
+button {
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+  border-radius: var(--radius);
+}
+
+/* Android Chrome のアウトライン調整 */
+:focus {
+  outline: none;
+}
+
+:focus-visible {
+  outline: 2px solid #3b82f6;
+  outline-offset: 2px;
+}
+
+/* バウンススクロール効果の制御 */
+html {
+  -webkit-scroll-behavior: smooth;
+  scroll-behavior: smooth;
+}
+
+body {
+  /* iOSでのバウンススクロール制御 */
+  overflow-x: hidden;
+  -webkit-overflow-scrolling: touch;
+  /* 全体のバウンス効果を無効化（必要に応じて） */
+  overscroll-behavior: none;
+}
+
+/* 縦向き固定時の警告（必要に応じて） */
+@media screen and (orientation: landscape) and (max-height: 500px) {
+  .landscape-warning {
+    display: block;
+  }
+}
+
+.landscape-warning {
+  display: none;
+}
+
+/* ダークモード対応のスワイプインジケーター */
+@media (prefers-color-scheme: dark) {
+  .swipe-indicator {
+    background: rgba(255, 255, 255, 0.9);
+    color: #1a1a1a;
+  }
+}
+
+/* ネットワーク最適化とライトモード */
+@layer utilities {
+  /* 軽量モード用スタイル */
+  .light-mode {
+    /* 画像の品質を下げる */
+    img {
+      image-rendering: optimizeSpeed;
+      -ms-interpolation-mode: nearest-neighbor;
+    }
+
+    /* アニメーションを簡略化 */
+    * {
+      animation-duration: 0.1s !important;
+      transition-duration: 0.1s !important;
+    }
+
+    /* グラデーションを単色に */
+    .bg-gradient-to-r,
+    .bg-gradient-to-l,
+    .bg-gradient-to-t,
+    .bg-gradient-to-b {
+      background-image: none !important;
+      background-color: #f3f4f6 !important;
+    }
+
+    /* シャドウを簡略化 */
+    .shadow-lg,
+    .shadow-xl,
+    .shadow-2xl {
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1) !important;
+    }
+
+    /* ブラーエフェクトを無効化 */
+    .backdrop-blur,
+    .backdrop-blur-sm,
+    .backdrop-blur-md,
+    .backdrop-blur-lg {
+      backdrop-filter: none !important;
+      -webkit-backdrop-filter: none !important;
+    }
+  }
+
+  /* データセーバーモード */
+  [data-light-mode="true"] {
+    /* 背景画像を無効化 */
+    background-image: none !important;
+    
+    /* 複雑なボーダーを簡略化 */
+    border-radius: 4px !important;
+    
+    /* フォントの読み込みを制限 */
+    font-feature-settings: normal !important;
+    font-variant-ligatures: none !important;
+  }
+
+  /* 低速接続時の画像最適化 */
+  .low-data-mode img {
+    filter: contrast(1.1) brightness(1.1);
+    image-rendering: optimizeSpeed;
+  }
+
+  /* プログレッシブ画像読み込み */
+  .progressive-image {
+    background-color: #f3f4f6;
+    background-image: linear-gradient(45deg, #f3f4f6 25%, transparent 25%), 
+                      linear-gradient(-45deg, #f3f4f6 25%, transparent 25%);
+    background-size: 20px 20px;
+    background-position: 0 0, 0 10px;
+    animation: progressiveImagePlaceholder 1s ease-in-out infinite;
+  }
+
+  .progressive-image.loaded {
+    background: none;
+    animation: none;
+  }
+
+  /* オフライン表示用スタイル */
+  .offline-indicator {
+    position: fixed;
+    top: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    background: #ef4444;
+    color: white;
+    padding: 4px 16px;
+    border-radius: 0 0 8px 8px;
+    font-size: 14px;
+    z-index: 9999;
+    animation: slideDown 0.3s ease-out;
+  }
+
+  .online-indicator {
+    background: #10b981;
+    animation: slideDown 0.3s ease-out, fadeOut 2s ease-out 1s forwards;
+  }
+
+  /* ネットワーク品質インジケーター */
+  .network-quality-indicator {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    font-weight: bold;
+    z-index: 9998;
+    transition: all 0.3s ease;
+  }
+
+  .network-quality-excellent {
+    background: #10b981;
+    color: white;
+  }
+
+  .network-quality-good {
+    background: #3b82f6;
+    color: white;
+  }
+
+  .network-quality-fair {
+    background: #f59e0b;
+    color: white;
+  }
+
+  .network-quality-poor {
+    background: #ef4444;
+    color: white;
+  }
+
+  .network-quality-offline {
+    background: #6b7280;
+    color: white;
+  }
+
+  /* データ使用量表示 */
+  .data-usage-meter {
+    position: fixed;
+    bottom: 100px;
+    right: 20px;
+    background: rgba(0, 0, 0, 0.8);
+    color: white;
+    padding: 8px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    z-index: 9997;
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+  }
+
+  .data-usage-bar {
+    width: 100px;
+    height: 4px;
+    background: rgba(255, 255, 255, 0.3);
+    border-radius: 2px;
+    margin-top: 4px;
+    overflow: hidden;
+  }
+
+  .data-usage-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #10b981, #f59e0b, #ef4444);
+    border-radius: 2px;
+    transition: width 0.3s ease;
+  }
+}
+
+/* アニメーション定義 */
+@keyframes progressiveImagePlaceholder {
+  0%, 100% { opacity: 0.5; }
+  50% { opacity: 0.8; }
+}
+
+@keyframes slideDown {
+  from { transform: translateX(-50%) translateY(-100%); }
+  to { transform: translateX(-50%) translateY(0); }
+}
+
+@keyframes fadeOut {
+  from { opacity: 1; }
+  to { opacity: 0; visibility: hidden; }
+}
+
+/* レスポンシブ最適化 */
+@media (max-width: 768px) {
+  .light-mode {
+    /* モバイルでさらに軽量化 */
+    background-attachment: scroll !important;
+    transform: none !important;
+  }
+  
+  .network-quality-indicator {
+    top: 10px;
+    right: 10px;
+    width: 30px;
+    height: 30px;
+    font-size: 10px;
+  }
+  
+  .data-usage-meter {
+    bottom: 80px;
+    right: 10px;
+    padding: 6px 10px;
+    font-size: 11px;
+  }
+  
+  .data-usage-bar {
+    width: 80px;
+  }
+}
+
+/* プリントメディア用最適化 */
+@media print {
+  .network-quality-indicator,
+  .data-usage-meter,
+  .offline-indicator,
+  .swipe-indicator {
+    display: none !important;
+  }
+  
+  * {
+    background-image: none !important;
+    box-shadow: none !important;
+    animation: none !important;
+    transition: none !important;
+  }
+}

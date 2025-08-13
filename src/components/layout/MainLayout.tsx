@@ -1,9 +1,18 @@
 'use client';
 
+import React from 'react';
 import { Header } from './Header';
 import { Sidebar } from './Sidebar';
 import { Footer } from './Footer';
 import { LayoutProvider, useLayout } from '@/contexts/LayoutContext';
+import { MobileLayoutTransition } from '@/components/mobile/MobileLayoutTransition';
+import {
+  useSmartPreload,
+  usePageLeaveTracking,
+  useNetworkAwarePreload,
+} from '@/hooks/useSmartPreload';
+import { useMobileGestures, useViewportFix } from '@/hooks/useMobileGestures';
+import { useNetworkOptimization } from '@/hooks/useNetworkOptimization';
 
 interface MainLayoutProps {
   children: React.ReactNode;
@@ -16,6 +25,70 @@ interface MainLayoutProps {
 function MainLayoutInner({ children }: MainLayoutProps) {
   const { sidebarOpen, isDesktop, isMobile } = useLayout();
 
+  // スマートプリロード機能の初期化
+  const { preloadRoute } = useSmartPreload();
+  const { preloadCriticalResources } = useNetworkAwarePreload();
+
+  // ページ離脱追跡
+  usePageLeaveTracking();
+
+  // モバイルジェスチャー機能の初期化
+  const { onSwipe, setSwipeEnabled } = useMobileGestures({
+    enableSwipeNavigation: isMobile,
+    enablePinchPrevention: true,
+    enablePullToRefresh: false,
+  });
+
+  // ビューポート修正（100vh問題解決）
+  useViewportFix();
+
+  // ネットワーク最適化機能の初期化
+  const { networkStatus, isLightModeActive } = useNetworkOptimization();
+
+  // 重要なリソースのプリロード実行
+  React.useEffect(() => {
+    preloadCriticalResources();
+  }, [preloadCriticalResources]);
+
+  // モバイル専用のスワイプナビゲーション設定
+  React.useEffect(() => {
+    if (isMobile) {
+      // カスタムスワイプハンドラーの設定
+      onSwipe('right', () => {
+        console.log('Right swipe detected - going back');
+        // 戻るナビゲーションは自動的に処理される
+      });
+
+      onSwipe('left', () => {
+        console.log('Left swipe detected');
+        // 左スワイプで次のページ（必要に応じて実装）
+      });
+    }
+  }, [isMobile, onSwipe]);
+
+  // デスクトップは従来のレイアウト、モバイルは新しいレイアウト移行システム
+  if (isMobile) {
+    return (
+      <MobileLayoutTransition enableBottomNav={true}>
+        <div className="min-h-screen bg-gray-50">
+          {/* ヘッダー（モバイル用） */}
+          <Header />
+
+          {/* メインコンテンツ */}
+          <main className="min-h-[calc(100vh-4rem)]">
+            <div className="p-4">
+              <div className="max-w-full mx-auto">{children}</div>
+            </div>
+
+            {/* フッター */}
+            <Footer />
+          </main>
+        </div>
+      </MobileLayoutTransition>
+    );
+  }
+
+  // デスクトップ・タブレット用従来レイアウト
   return (
     <div className="min-h-screen bg-gray-50">
       {/* ヘッダー（全画面固定） */}
@@ -23,8 +96,6 @@ function MainLayoutInner({ children }: MainLayoutProps) {
 
       {/* メインコンテンツエリア */}
       <div className="flex min-h-[calc(100vh-4rem)]">
-        {' '}
-        {/* ヘッダー分を除く */}
         {/* サイドバー */}
         <Sidebar />
         {/* メインコンテンツ */}
@@ -33,7 +104,6 @@ function MainLayoutInner({ children }: MainLayoutProps) {
             flex-1 flex flex-col
             transition-all duration-300 ease-in-out
             ${isDesktop && sidebarOpen ? 'lg:ml-64' : 'ml-0'}
-            ${isMobile ? 'w-full' : ''}
           `}
         >
           {/* コンテンツエリア */}
