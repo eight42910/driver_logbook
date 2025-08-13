@@ -6,6 +6,7 @@ import { usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';
 import { useResponsive } from '@/contexts/LayoutContext';
 import { usePerformance } from '@/contexts/PerformanceContext';
+import { useInteractionPreload } from '@/hooks/useSmartPreload';
 import {
   LayoutDashboard,
   BarChart3,
@@ -66,6 +67,7 @@ export function BottomNavigationBar() {
   const pathname = usePathname();
   const { isMobile } = useResponsive();
   const { trackUserAction } = usePerformance();
+  const { handleLinkHover, handleLinkTouchStart, handleLinkFocus } = useInteractionPreload();
 
   // デスクトップでは表示しない
   if (!isMobile) {
@@ -110,6 +112,9 @@ export function BottomNavigationBar() {
                         href: item.href,
                       })
                     }
+                    onMouseEnter={() => handleLinkHover(item.href)}
+                    onTouchStart={() => handleLinkTouchStart(item.href)}
+                    onFocus={() => handleLinkFocus(item.href)}
                     className="relative flex flex-col items-center justify-center"
                   >
                     <div className="absolute -top-6 bg-blue-600 rounded-full p-3 shadow-lg border-4 border-white">
@@ -135,6 +140,9 @@ export function BottomNavigationBar() {
                       isActive,
                     })
                   }
+                  onMouseEnter={() => handleLinkHover(item.href)}
+                  onTouchStart={() => handleLinkTouchStart(item.href)}
+                  onFocus={() => handleLinkFocus(item.href)}
                   className={cn(
                     'flex flex-col items-center justify-center p-2 rounded-lg transition-all duration-200 min-w-[64px]',
                     isActive
