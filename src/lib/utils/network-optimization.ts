@@ -49,7 +49,7 @@ export interface OptimizationStats {
 export class NetworkOptimizer {
   private config: OptimizationConfig;
   private stats: Map<string, OptimizationStats> = new Map();
-  private isLightModeActive = false;
+  private isLightModeActiveFlag = false;
   private networkStatus: NetworkStatus;
   private listeners: Array<(status: NetworkStatus) => void> = [];
 
@@ -260,10 +260,10 @@ export class NetworkOptimizer {
    * 軽量モードの有効化
    */
   private activateLightMode(): void {
-    if (this.isLightModeActive) return;
+    if (this.isLightModeActiveFlag) return;
     if (typeof document === 'undefined') return;
 
-    this.isLightModeActive = true;
+    this.isLightModeActiveFlag = true;
     document.documentElement.setAttribute('data-light-mode', 'true');
 
     // 軽量モード用のCSSクラスを追加
@@ -282,10 +282,10 @@ export class NetworkOptimizer {
    * 軽量モードの無効化
    */
   private deactivateLightMode(): void {
-    if (!this.isLightModeActive) return;
+    if (!this.isLightModeActiveFlag) return;
     if (typeof document === 'undefined') return;
 
-    this.isLightModeActive = false;
+    this.isLightModeActiveFlag = false;
     document.documentElement.removeAttribute('data-light-mode');
     document.body.classList.remove('light-mode');
 
@@ -614,7 +614,7 @@ export class NetworkOptimizer {
    * 軽量モードの状態を取得
    */
   public isLightModeActive(): boolean {
-    return this.isLightModeActive;
+    return this.isLightModeActiveFlag;
   }
 
   /**
