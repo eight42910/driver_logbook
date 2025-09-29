@@ -26,5 +26,21 @@
 
 ## 2025-09-27 セッション
 
-- 目的例：委託ドライバー向け日報アプリの MVP を理解・設計する。短期ゴールは「ログイン → 日報登録 → 承認 → 請求書出力」フローの全体像を描く。
-- 完了条件：AGENTS の各フェーズで得た知見を docs/learning-log.md に時系列で残す。疑問点は明示し、次チャンクで解消。
+- **目的**: 委託ドライバー向け日報アプリの MVP 設計と、Supabase 認証の実装。
+- **完了条件**: ログイン・サインアップ機能が動作し、学んだ知見を時系列で記録する。
+
+### 主な学びと解決した問題
+
+1.  **Supabase サーバークライアントの型エラー**
+    - **状況**: `src/lib/supabase/server.ts` で `createServerClient` を使用した際、`next/headers` の `cookies()` 関数を渡すと型エラーでビルドが失敗した。
+    - **原因**: `@supabase/ssr` ライブラリが `cookies` オプションに `get`, `set`, `remove` メソッドを持つオブジェクトを期待しているのに対し、Next.js の `cookies()` は関数そのものを返すため、型の不一致が発生していた。
+    - **解決策**: `cookies()` から返される `ReadonlyRequestCookies` をラップし、Supabase が要求するインターフェースに適合するオブジェクトを作成して渡すことで解決した。
+
+2.  **Supabase 認証フローの実装**
+    - **環境設定**: `.env.local` に正しい `NEXT_PUBLIC_SUPABASE_URL` と `NEXT_PUBLIC_SUPABASE_ANON_KEY` を設定し、401 認証エラーを解消。設定変更後は `npm run dev` での再起動が必要。
+    - **サインアップ**: サインアップ画面に Supabase のアカウント作成処理を実装。`data.user` と `data.session` の違い（`user` はユーザー情報、`session` は認証状態）を理解した。
+    - **サインイン**: メール認証後のサインインフローを検証。`loading` や `errorMessage` といった状態変数を用いた UI の状態管理方法を把握した。
+
+3.  **開発オペレーション**
+    - Next.js 開発サーバーの再起動は `Ctrl + C` で停止後、`npm run dev` で再実行する。
+    - `rs` コマンドによる再起動ショートカットも確認した。

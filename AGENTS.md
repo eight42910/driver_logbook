@@ -1,37 +1,33 @@
-# コード理解フレーム（AGENTS）
+# Repository Guidelines
 
-このプロジェクトでコードを読む・実装する際は、以下の AGENTS フレームを常に回して理解を深める。各ステップは 5〜20 分程度の「チャンク」として扱い、音声入力＋メモで記録しながら進める。
+## プロジェクト構造とモジュール構成
+- `src/app` は Next.js App Router のルート群。`(auth)` が Supabase 認証画面、`reports` が日報の CRUD 画面です。
+- `src/components` には共有 UI を配置します。スタイル付き共通部品は `components/ui`、フォームやガードなど機能固有のコンポーネントは隣接する機能ディレクトリへ。
+- `src/features` はドメインロジック、`src/lib` は Supabase クライアントやバリデーションなどの基盤コード、`src/utils` は横断的ユーティリティです。
+- ドキュメントと学習ログは `docs/` 以下（`project-playbook.md`、`learning-log.md`）。新たな心得や日次メモもここに追加してください。
 
-## A – Aim（目的を言語化）
-- まず「何を理解・実装したいのか」「完了条件は何か」を 1〜3 行で書く。
-- 例：`/signin` ページがどこまで完成しているか確認する。
+## ビルド・テスト・開発コマンド
+- `npm run dev` — 開発サーバーを `http://localhost:3000` で起動。
+- `npm run build` — 本番ビルドを生成。デプロイ前に必ず実行。
+- `npm run start` — 生成済みビルドをローカルで確認。
+- `npm run lint` — ESLint（`next/core-web-vitals` 設定）で静的解析。
 
-## G – Global Map（全体マップ）
-- ファイルパス、ファイル名、`export` などをざっと確認し、役割を一言で説明できるようにする。
-- 例：`src/app/(auth)/signin/page.tsx` → サインイン画面のページコンポーネント。
+## コーディングスタイルと命名規則
+- TypeScript + React 18 + Tailwind CSS を前提に 2 スペースインデントを使用。
+- コンポーネントはパスカルケース（例：`DriverReportCard`）、フックやユーティリティはキャメルケース（例：`useSessionGuard`）。
+- スタイルは基本 Tailwind クラスで記述し、共通トークンは `src/styles` に集約。
+- ESLint を唯一のフォーマッタとし、コミット前に `npm run lint` を必ず通します。
 
-## E – External Links（依存関係）
-- `import` を一覧化し、外部ライブラリと自作コンポーネントを分類。
-- 関連ファイルがあればメモに矢印で残す → 必要に応じて小さくフレームを適用して読む。
+## テスト方針
+- 自動テストは未整備。追加時は `src/__tests__/ComponentName.test.tsx` もしくはソース同階層に配置。
+- UI は React Testing Library、結合テストは Playwright を推奨。Supabase 連携はモック化し、副作用を最小化。
+- 形式化前は手動検証の結果を `docs/learning-log.md` に残し、再実装時の参照とします。
 
-## N – Node States & Events（状態とイベント）
-- `useState`・`useEffect`・イベントハンドラを探して、状態の変化や処理の流れを整理。
-- 「いつ」「何が」「どう変わるか」を箇条書きで可視化する。
+## コミットとプルリクエストの指針
+- サマリー行は `type(scope): intent` 形式（例：`feat(reports): add create flow validation`）。英語・現在形で簡潔に。
+- 本文には背景、変更点、検証結果（実行コマンドやスクショ）を添付。関連するドキュメントや課題をリンク。
+- PR では課題→解決方針→検証結果を順序立てて記述し、必要に応じて `docs/learning-log.md` の該当項目を参照してください。
 
-## T – Template Walkthrough（JSX／ロジックの分解）
-- `return` や主要な関数を外枠→内側の順で読み、ブロックごとの役割をメモ。
-- Tailwind など見た目情報は必要最低限にして、構造と処理の意図を優先して理解する。
-
-## S – Simulation（仮説検証と記録）
-- 理解した内容を元に仮説を立て、`console.log` やブラウザ操作で検証。
-- 結果が仮説と合わない場合は差分を調べ、学習メモ（`docs/learning-log.md`）に「狙い／実施／気づき／疑問」を自分の言葉で追記。必要に応じて AI に整形を依頼し、最後に自分で確認する。
-
----
-
-### 運用ルール
-1. 作業を始める前に Aim を書き出し、チャンクごとに時間を区切る。
-2. 各チャンクの終わりで、理解したこと・まだ曖昧なことをメモ（音声→文字→AI 整形→自己確認）。
-3. 1 ファイルを読み終えたら、必要な関連ファイルにも AGENTS を小さく適用する。
-4. 最後に次のアクションを 1 行で明確化し、学習ログに残す。
-
-AGENTS フレームを習慣化することで、実装・読解・振り返りのリズムを統一し、理解を飛ばさず進める。
+## 環境設定と運用ヒント
+- `.env.local` に `NEXT_PUBLIC_SUPABASE_URL` と `NEXT_PUBLIC_SUPABASE_ANON_KEY` を設定してから `npm run dev` を実行。
+- Supabase の初期化 SQL と日次タスクは `docs/project-playbook.md` に記載。スキーマ変更や学習計画時に必ず参照してください。
