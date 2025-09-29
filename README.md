@@ -1,95 +1,80 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app) and integrated with [microCMS](https://microcms.io) for content management.
+# ドライバーログブック
 
-## Setup
+初心者エンジニアが、理解を軸にしながら日報アプリを完成させることを目的とした Next.js (App Router) + Supabase + TypeScript + Tailwind CSS の MVP プロジェクトです。1 日 1〜2 時間のペースで、学びと実装を両立できるロードマップを前提としています。
 
-### 1. Environment Variables
+## 学習を始める前に（認知負荷を下げるための工夫）
+- **日々のゴールを 1 つに絞る**：その日に「学ぶ／作ること」をプレイブックの Day プランから選び、他のことは気にしない。
+- **作業前に自分の言葉で要約する**：何を実現するのか、なぜ必要なのかを 2〜3 行でメモに書き出してから着手する。
+- **理解できないまま進めない**：疑問をメモして調べ、納得するまで小さく検証する。わからない点は Supabase ドキュメントや Next.js ドキュメントを参照する。
+- **アウトプット優先**：学んだことをすぐにコードや日報に反映し、手を動かしながら整理する。
+- **ブレークポイントを用意する**：30 分以上詰まったら一度立ち止まり、何に詰まったかを言語化→調査 or 質問。
 
-Create a `.env.local` file in the root directory and add your microCMS configuration:
+## プロジェクトの進め方
+- まず `docs/project-playbook.md` を読み、Day 1 から順番に取り組む
+- 各日ごとに「理解したこと」「まだ曖昧なこと」を日報に記録し、次の日の最初に振り返る
+- 新しいファイルやコンセプトに触れるときは、先に関連するドキュメントを軽く読み、目的→実装→動作確認の順で進める
 
-```bash
-# microCMS Configuration
-MICROCMS_SERVICE_DOMAIN=your-service-domain
-MICROCMS_API_KEY=your-api-key
-NEXT_PUBLIC_SITE_URL=http://localhost:3000
-```
-
-### 2. microCMS Setup
-
-1. Create a microCMS account at [https://microcms.io](https://microcms.io)
-2. Create a new service
-3. Create an API called "blogs" with the following schema:
-   - title (Text Field)
-   - content (Rich Text Editor)
-   - description (Text Field) - optional
-   - thumbnail (Media) - optional
-   - category (Reference to Category API) - optional
-   - tags (Multiple Reference to Tag API) - optional
-
-## Getting Started
-
-First, install dependencies and run the development server:
+## セットアップ手順
 
 ```bash
 npm install
 npm run dev
-# or
-yarn install && yarn dev
-# or
-pnpm install && pnpm dev
-# or
-bun install && bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+開発サーバーは [http://localhost:3000](http://localhost:3000) で確認できます。
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## 必要な事前準備
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+1. Supabase プロジェクトを作成し、メール/パスワード認証を有効化
+2. ルートディレクトリに `.env.local` を作成し、以下の環境変数を設定
 
-## Version Information
+```
+NEXT_PUBLIC_SUPABASE_URL=your-supabase-url
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your-supabase-anon-key
+```
 
-This template uses the following stable versions of the main libraries:
+3. `docs/project-playbook.md` に記載の SQL を Supabase の SQL Editor で実行し、`reports` テーブルと RLS ポリシーを作成
 
-*   **Next.js:** 14.2.32
-*   **React:** 18.3.1
-*   **Tailwind CSS:** 3.4.17
+## ディレクトリ概要
 
-These versions have been selected to ensure stability and compatibility.
+```
+src/
+  app/
+    (auth)/         # サインイン / サインアップ画面
+    reports/        # 日報の CRUD ページ
+  components/
+    ui/             # Tailwind を使った再利用コンポーネント
+    AuthGate.tsx    # 認証状態によるガード（実装予定）
+    ReportForm.tsx  # 作成・編集フォームの土台
+  lib/
+    supabase/       # ブラウザ／サーバー向け Supabase クライアント
+    validations/    # Zod スキーマ
+```
 
-## How to Use This Template
+詳細なロードマップやチェックリストは `docs/project-playbook.md` を参照してください。
 
-1.  **Clone the repository:**
-    ```bash
-    git clone https://github.com/your-username/your-repo-name.git
-    cd your-repo-name
-    ```
-2.  **Install dependencies:**
-    ```bash
-    npm install
-    ```
-3.  **Set up your environment variables:**
-    Create a `.env.local` file in the root of your project and add the following:
-    ```
-    MICROCMS_SERVICE_DOMAIN=your-service-id
-    MICROCMS_API_KEY=your-api-key
-    ```
-4.  **Run the development server:**
-    ```bash
-    npm run dev
-    ```
-    Open [http://localhost:3000](http://localhost:3000) to see the result.
+## スクリプト
 
-## Learn More
+- `npm run dev` – 開発サーバー起動
+- `npm run build` – 本番ビルド作成
+- `npm run start` – 本番ビルドをローカル実行
+- `npm run lint` – ESLint を実行
 
-To learn more about Next.js, take a look at the following resources:
+## 今後の進め方（理解を深めるためのヒント）
+- **どのように質問すべきか？**
+  - 「何がわからないか」を具体的に書き出す（例："Supabase のセッション取得が理解できていない"）。
+  - 事前に試したこと・参考にしたリンク・期待した結果を一緒にメモする。
+  - その上で、質問相手（メンターやコミュニティ）に短く状況説明すると理解が進みやすい。
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+- **どのように作っていけば理解が深まるか？**
+  1. 目標（例："サインインフォームから Supabase にログインする"）を定義
+  2. 公式ドキュメントで関連項目を確認し、サンプルコードを最小に抜き出して手元で試す
+  3. プロジェクトに組み込む際は「入力 → 検証 → API 呼び出し → 結果表示」の流れを意識して段階的に実装
+  4. 動作確認後に、何がどう動いたかを日報で説明してみる（説明できれば理解できているサイン）
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+- **理解を飛ばさないために**
+  - 新しい概念に出会ったら「なぜ必要なのか」「どこで使われるのか」をまず把握する
+  - わからない単語が出てきたら用語集を作ってメモする（例：RLS, SSR, Zod など）
+  - 同様のコードをコピペする場合でも、自分の言葉でコメントやメモを書き、再読できる状態を作る
 
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+プレイブックとあわせて、この README を作業前に読み返し、学びを定着させながら日々のタスクを進めてください。
