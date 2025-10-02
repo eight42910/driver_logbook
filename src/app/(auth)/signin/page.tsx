@@ -6,8 +6,7 @@ import { useRouter } from 'next/navigation';
 import { FormEvent, useState } from 'react';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
-import { createSupabaseBrowserClient } from '@/lib/supabase/client';
-
+import { createClient } from '@/lib/supabase/client';
 const SignInPage = () => {
   //ページ遷移のためにuseRouterを使用
   const router = useRouter();
@@ -24,7 +23,7 @@ const SignInPage = () => {
     const formData = new FormData(event.currentTarget);
     const email = formData.get('email') as string;
     const password = formData.get('password') as string;
-    const supabase = createSupabaseBrowserClient();
+    const supabase = createClient();
 
     try {
       const { error } = await supabase.auth.signInWithPassword({

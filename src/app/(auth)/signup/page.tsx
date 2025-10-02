@@ -6,7 +6,7 @@ import { FormEvent, useState } from 'react';
 
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
-import { createSupabaseBrowserClient } from '@/lib/supabase/client';
+import { createClient } from '@/lib/supabase/client';
 
 const SignUpPage = () => {
   const router = useRouter();
@@ -24,7 +24,7 @@ const SignUpPage = () => {
     const email = formData.get('email') as string;
     const password = formData.get('password') as string;
     console.log(process.env.NEXT_PUBLIC_SUPABASE_URL);
-    const supabase = createSupabaseBrowserClient();
+    const supabase = createClient();
 
     try {
       const { error, data } = await supabase.auth.signUp({ email, password });
