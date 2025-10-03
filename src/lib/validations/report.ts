@@ -1,9 +1,9 @@
 import { z } from 'zod';
 
 export const reportSchema = z.object({
-  date: z.string().min(1, 'Date is required'),
-  title: z.string().min(1, 'Title is required'),
-  body: z.string().min(1, 'Body is required'),
+  workDate: z.string().min(1, '日付は必須です'),
+  clientId: z.string().min(1, 'クライアントは必須です'),
+  memo: z.string().min(1, 'メモは必須です'),
   hours: z.coerce.number().min(0).max(24).optional(),
   tags: z.array(z.string()).optional(),
 });

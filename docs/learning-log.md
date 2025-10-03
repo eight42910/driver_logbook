@@ -57,3 +57,17 @@
   - セッションは Supabase が Cookie 経由で保持する「ログイン中の自分の証明書」であり、サーバーからも Cookie を正しく読み書きできる設計が不可欠。
   - フレームワーク側の最新ヘルパーを利用すると、自前で `set` / `remove` を実装するより安全にセッションを扱える。
 - **次に調べたいこと**: `/reports` で Supabase から日報一覧を取得する際の SSR/CSR 方針と、Zod バリデーションを繋いだフォーム送信フロー。
+
+## 2025-10-03 セッション（追加メモ）
+
+- Supabase v2 向けヘルパー整備として `src/features/drivers/server.ts` を新規作成し、`getOrCreateDriverId` を実装。
+  - ログイン中ユーザーの `drivers` 行を検索し、存在しなければ `insert` して `id` を取得する流れを理解。
+  - `createClient` の戻り値を `await` する理由、`.maybeSingle()` の戻り値の扱い、`.returns` で必要な型だけ指定する方針を確認。
+- Supabase のジェネリクスは無理に 2 つ指定せず、まずはシンプルな呼び出しで動かし、必要に応じて `.returns<{ id: string } | null>()` を使う方が TypeScript と相性が良いことを学んだ。
+- 今後はこのヘルパーをサーバーアクションから呼び出し、`daily_reports` への insert に組み込んでいく。
+src/features/drivers/server.ts に getOrCreateDriverId を実装。ログイン中ユーザーに対応する drivers レコードを取得し、存在しなければ作成して ID を返すヘルパーが整った。
+
+src/app/reports/new/actions.ts でサーバーアクション createReport を構築。reportSchema.safeParse でフォーム値を検証し、Supabase Auth からユーザーを取得 → driver_id を確保 → daily_reports に最低限の必須項目（driver_id, client_id, work_date, memo）を DailyReportInsert 型で挿入する流れまで完成。
+src/lib/validations/report.ts を実スキーマに合わせて調整し、workDate や clientId など daily_reports と一致するフィールド構成に更新。
+src/lib/supabase/types.ts に必要な型（DailyReportInsert など）を手動定義し、Supabase 側スキーマとの整合を確保した。
+
